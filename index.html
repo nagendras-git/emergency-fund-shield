@@ -187,6 +187,35 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 .plan-title{font-size:.84rem;font-weight:700;color:var(--text1);margin-bottom:4px}
 .plan-body{font-size:.75rem;color:var(--text2);line-height:1.6}
 
+/* progress tracker */
+.prog-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px}
+.prog-header{padding:13px 14px 10px;border-bottom:1px solid var(--border2)}
+.prog-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.prog-title{font-size:.86rem;font-weight:700;color:var(--text1)}
+.prog-edit{font-size:.72rem;font-weight:600;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:4px 10px;border-radius:99px;cursor:pointer;border:none;font-family:'Inter',sans-serif}
+.prog-bar-wrap{margin-bottom:4px}
+.prog-bar-track{height:8px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.prog-bar-fill{height:100%;border-radius:99px;transition:width .4s cubic-bezier(.16,1,.3,1)}
+.prog-bar-labels{display:flex;justify-content:space-between;font-size:.65rem;color:var(--text3);margin-top:4px}
+.prog-pct{font-size:1.3rem;font-weight:800;line-height:1}
+.prog-pct-wrap{display:flex;align-items:baseline;gap:5px;margin-bottom:2px}
+.prog-pct-sub{font-size:.7rem;color:var(--text3);font-weight:400}
+.bucket-rows{padding:0 14px 6px}
+.bucket-prog-row{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border2);gap:10px;cursor:pointer}
+.bucket-prog-row:last-child{border-bottom:none}
+.bp-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.95rem}
+.bp-body{flex:1;min-width:0}
+.bp-name{font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:3px}
+.bp-bar-track{height:4px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.bp-bar-fill{height:100%;border-radius:99px;transition:width .35s cubic-bezier(.16,1,.3,1)}
+.bp-right{text-align:right;flex-shrink:0}
+.bp-saved{font-size:.78rem;font-weight:700;color:var(--text1)}
+.bp-target{font-size:.62rem;color:var(--text3);margin-top:1px}
+.status-chip{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:99px;margin-top:6px}
+.status-chip.done{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+.status-chip.going{color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2)}
+.status-chip.start{color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25)}
+
 /* toast */
 .toast{position:fixed;bottom:calc(var(--nav-h)+12px+var(--safe-b));left:50%;transform:translateX(-50%) translateY(6px);background:var(--surface);border:1px solid var(--border);color:var(--text1);padding:9px 20px;border-radius:99px;font-size:.88rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s var(--spring);white-space:nowrap;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -219,6 +248,15 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 
   <!-- 4 quick stats -->
   <div class="stat-grid" id="h-stats"></div>
+
+  <!-- Progress tracker -->
+  <div class="sec-hdr" onclick="toggleSec('sec-h-progress')">
+    <div class="sec-hdr-left"><span class="sec-hdr-title">My Progress</span><span class="sec-badge green" id="prog-badge">0%</span></div>
+    <span class="sec-caret open" id="caret-sec-h-progress"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body" id="sec-h-progress">
+    <div id="h-progress"></div>
+  </div>
 
   <!-- Inflation impact callout -->
   <div class="row-list" id="h-impact"></div>
@@ -344,6 +382,31 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
     </div>
   </div>
 
+  <div class="sec-hdr" onclick="toggleSec('sec-s-backup')" style="margin-top:4px">
+    <div class="sec-hdr-left"><span class="sec-hdr-title">Backup &amp; Restore</span></div>
+    <span class="sec-caret open" id="caret-sec-s-backup"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body" id="sec-s-backup">
+    <div class="row-list">
+      <div class="row-item tap" onclick="exportBackup()">
+        <div class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        <div class="row-body"><div class="row-title">Export backup</div><div class="row-sub">Download your settings as a file</div></div>
+        <div class="row-right"><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div class="row-item tap" onclick="document.getElementById('import-input').click()">
+        <div class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <div class="row-body"><div class="row-title">Import backup</div><div class="row-sub">Restore from a previously exported file</div></div>
+        <div class="row-right"><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div class="row-item tap" onclick="copyShareLink()">
+        <div class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
+        <div class="row-body"><div class="row-title">Copy link to share</div><div class="row-sub">Opens same settings on any device</div></div>
+        <div class="row-right"><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+    </div>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importBackup(event)">
+  </div>
+
   <div style="padding:4px 0 2px;margin-top:6px">
     <button onclick="doReset()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--r-lg);background:transparent;color:var(--text3);font-size:.8rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.87"/></svg>
@@ -397,15 +460,19 @@ const RUPEE_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const DEF={infl:6,yrs:5,im:4,km:8,hm:48,
   bn1:'IDFC Bank',bn2:'Kotak Arb',bn3:'HDFC BAF',
   br1:6.5,br2:7.5,br3:11,
+  saved:{b1:0,b2:0,b3:0},
   exp:[
-    {n:'House rent',a:36396,g:6.5,base:32000},
+    {n:'House rent',a:32000,g:6.5},
     {n:'Household',a:15000,g:6},
     {n:'Electricity water milk',a:5000,g:6},
     {n:'Term insurance',a:4868,g:0},
     {n:'Travel',a:5000,g:6},
     {n:'Outside food',a:1500,g:6}
   ]};
-let S=JSON.parse(JSON.stringify(DEF));
+function saveState(){try{localStorage.setItem('efs-state',JSON.stringify(S));}catch(e){}}
+function loadState(){try{const raw=localStorage.getItem('efs-state');if(raw){const saved=JSON.parse(raw);// merge carefully so new DEF fields survive
+S={...JSON.parse(JSON.stringify(DEF)),...saved,exp:Array.isArray(saved.exp)&&saved.exp.length?saved.exp:JSON.parse(JSON.stringify(DEF.exp))};}}catch(e){}}
+let S=JSON.parse(JSON.stringify(DEF));loadState();
 
 /* ── SIZE ── */
 function setSize(px){
@@ -453,12 +520,14 @@ function toggleSec(id){
 
 /* ── RENDER ALL ── */
 function renderAll(){
+  saveState();
   const a=alloc();
   const me=totAt(0);
   const tm=S.im+S.km+S.hm;
   const startYear=new Date().getFullYear();
 
   renderHome(a,me,tm,startYear);
+  renderProgress(a);
   renderPlan(a,me,tm);
   renderBuckets(a,tm,startYear);
   renderSettingsPage();
@@ -470,18 +539,17 @@ function renderHome(a,me,tm,startYear){
 
   const endYear=startYear+S.yrs;
   const meEnd=totAt(tm);
+  const actualInflPct=me>0?((meEnd/me-1)*100).toFixed(1):'0';
   document.getElementById('h-desc').textContent=
-    startYear+' to '+endYear+' · '+tm+' months covered · '+S.infl+'% inflation';
+    startYear+' to '+endYear+' · '+tm+' months covered · expenses rise '+actualInflPct+'% over '+S.yrs+' yrs';
 
-  // Clean formula: chips
-  // Plain English formula — no confusing multiplier
-  const totalInflPct=((totAt(tm)/me-1)*100).toFixed(0);
+  // Plain English formula
   document.getElementById('h-formula').innerHTML=
     `<span class="formula-chip">${R(me)}/mo now</span>`+
     `<span class="formula-op">×</span>`+
     `<span class="formula-chip">${tm} months</span>`+
     `<span class="formula-op">+</span>`+
-    `<span class="formula-chip" style="color:var(--red);border-color:rgba(248,113,113,.25)">${S.infl}%/yr inflation over ${S.yrs} yrs</span>`+
+    `<span class="formula-chip" style="color:var(--red);border-color:rgba(248,113,113,.25)">+${actualInflPct}% cost rise over ${S.yrs} yrs</span>`+
     `<span class="formula-op">=</span>`+
     `<span class="formula-chip" style="color:var(--green);border-color:var(--green-border)">${L(a.tot)}</span>`;
 
@@ -537,6 +605,89 @@ function renderHome(a,me,tm,startYear){
   </div>`).join('');
 }
 
+/* ── PROGRESS TRACKER ── */
+function renderProgress(a){
+  if(!S.saved) S.saved={b1:0,b2:0,b3:0};
+  const sv=S.saved;
+  const targets=[a.id,a.ko,a.hd];
+  const names=[S.bn1,S.bn2,S.bn3];
+  const icons=['💧','⚖️','🏦'];
+  const colors=['#3B82F6','#22c55e','#f59e0b'];
+  const bgs=['rgba(59,130,246,.15)','rgba(34,197,94,.15)','rgba(245,158,11,.15)'];
+  const keys=['b1','b2','b3'];
+
+  const totalSaved=(sv.b1||0)+(sv.b2||0)+(sv.b3||0);
+  const totalNeeded=a.tot;
+  const overallPct=totalNeeded>0?Math.min(100,(totalSaved/totalNeeded*100)):0;
+  const overallPctR=overallPct.toFixed(1);
+
+  // update badge
+  const badgeEl=document.getElementById('prog-badge');
+  if(badgeEl){
+    badgeEl.textContent=overallPctR+'%';
+    badgeEl.className='sec-badge '+(overallPct>=100?'green':overallPct>0?'':'' );
+    badgeEl.style.color=overallPct>=100?'var(--green)':overallPct>0?'var(--blue)':'var(--text3)';
+  }
+
+  const statusLabel=overallPct>=100
+    ? '<span class="status-chip done">✓ Fully funded</span>'
+    : overallPct>=50
+    ? '<span class="status-chip going">▲ On track</span>'
+    : overallPct>0
+    ? '<span class="status-chip going">→ Building</span>'
+    : '<span class="status-chip start">○ Not started</span>';
+
+  // bar colour
+  const barColor=overallPct>=100?'var(--green)':overallPct>=50?'var(--blue)':'#f59e0b';
+
+  let html=`<div class="prog-card">
+    <div class="prog-header">
+      <div class="prog-top">
+        <div>
+          <div class="prog-pct-wrap">
+            <div class="prog-pct" style="color:${barColor}">${overallPctR}%</div>
+            <div class="prog-pct-sub">of ${L(totalNeeded)} target</div>
+          </div>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:2px">Saved so far: <strong style="color:var(--text1)">${L(totalSaved)}</strong> &nbsp;·&nbsp; Still needed: <strong style="color:var(--red)">${L(Math.max(0,totalNeeded-totalSaved))}</strong></div>
+          ${statusLabel}
+        </div>
+        <button class="prog-edit" onclick="openSheet('saved')">Update balances</button>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-track">
+          <div class="prog-bar-fill" style="width:${overallPct}%;background:${barColor}"></div>
+        </div>
+        <div class="prog-bar-labels"><span>${L(totalSaved)} saved</span><span>${L(totalNeeded)} goal</span></div>
+      </div>
+    </div>
+    <div class="bucket-rows">`;
+
+  keys.forEach((k,i)=>{
+    const saved=sv[k]||0;
+    const target=targets[i];
+    const pct=target>0?Math.min(100,(saved/target*100)):0;
+    const pctR=pct.toFixed(0);
+    const remaining=Math.max(0,target-saved);
+    html+=`<div class="bucket-prog-row" onclick="openSheet('saved')">
+      <div class="bp-icon" style="background:${bgs[i]}">${icons[i]}</div>
+      <div class="bp-body">
+        <div class="bp-name">${names[i]}</div>
+        <div class="bp-bar-track">
+          <div class="bp-bar-fill" style="width:${pct}%;background:${colors[i]}"></div>
+        </div>
+      </div>
+      <div class="bp-right">
+        <div class="bp-saved" style="color:${colors[i]}">${pctR}%</div>
+        <div class="bp-target">${L(saved)} / ${L(target)}</div>
+        ${remaining>0?`<div style="font-size:.58rem;color:var(--text3)">₹${Math.round(remaining/1e5*100)/100}L left</div>`:'<div style="font-size:.6rem;color:var(--green);font-weight:700">✓ Done</div>'}
+      </div>
+    </div>`;
+  });
+
+  html+=`</div></div>`;
+  document.getElementById('h-progress').innerHTML=html;
+}
+
 /* ── PLAN ── */
 function renderPlan(a,me,tm){
   document.getElementById('p-exp-badge').textContent=R(me)+'/mo';
@@ -562,13 +713,13 @@ function renderPlan(a,me,tm){
   document.getElementById('p-calc-body').innerHTML=`
     <div class="plan-item">
       <div class="plan-title">Why not just monthly × months?</div>
-      <div class="plan-body">Your expenses are not fixed. They rise at ${S.infl}% every year due to inflation. So month 1 costs slightly more than today, month 2 more than month 1, and so on. The app adds up each month's actual inflated value — not today's flat amount.</div>
+      <div class="plan-body">Your expenses are not fixed. Each expense rises at its own inflation rate every year — for example rent at 6.5%, groceries at 6%, insurance stays fixed. So month 1 costs slightly more than today, month 2 more than month 1, and so on. The app adds up each month's actual inflated value — not today's flat amount.</div>
     </div>
     <div class="plan-item">
       <div class="plan-title">Bucket 1 — ${S.bn1} (${S.im} months)</div>
       <div class="plan-body">
         Flat: ${R(me)} × ${S.im} = <strong style="color:var(--text1)">${R(b1flat)}</strong><br>
-        Inflation adds: <strong style="color:var(--red)">+${R(b1infl)}</strong> (costs rise each month at ${S.infl}%/yr)<br>
+        Inflation adds: <strong style="color:var(--red)">+${R(b1infl)}</strong> (each expense rises at its own rate)<br>
         Total: <strong style="color:var(--blue)">${L(a.id)}</strong>
       </div>
     </div>
@@ -632,9 +783,11 @@ function renderBuckets(a,tm,startYear){
       ${bodies.join('')}
     </div>`;
 
+  const meNow=totAt(0),meEnd2=totAt(tm);
+  const actualRise=meNow>0?((meEnd2/meNow-1)*100).toFixed(1):'0';
   document.getElementById('b-notes-list').innerHTML=[
     {t:'Why 3 buckets?',b:'Bucket 1 is instant cash. Bucket 2 earns more but needs a day to redeem. Bucket 3 grows the most over years. Together they balance access speed and returns.'},
-    {t:'Inflation erodes the fund silently',b:'At '+S.infl+'% inflation, your monthly spend of '+R(totAt(0))+' today becomes '+R(totAt(tm))+' by year '+S.yrs+'. A fund built on today\'s expenses will be short exactly when you need it.'},
+    {t:'Inflation erodes the fund silently',b:'Your monthly spend of '+R(meNow)+' today will grow by '+actualRise+'% to '+R(meEnd2)+' by year '+S.yrs+' — because each expense rises at its own inflation rate. A fund built on today\'s numbers will be short exactly when you need it.'},
     {t:'Kotak Arbitrage — wait 12 months',b:'Gains before 12 months are taxed at 20%. After 12 months, up to ₹1.25L of gains each year is completely tax free. Plan withdrawals accordingly.'},
     {t:'HDFC BAF for years 2 to 5',b:'Parking 4 years of expenses at 4% savings rate means losing to inflation every year. BAF targets '+S.br3+'%+ by dynamically shifting between equity and debt.'}
   ].map(n=>`<div class="plan-item"><div class="plan-title">${n.t}</div><div class="plan-body">${n.b}</div></div>`).join('');
@@ -660,16 +813,45 @@ function renderSettingsPage(){
 }
 
 function delExpense(i){S.exp.splice(i,1);renderAll();toast('Removed');}
-function doReset(){S=JSON.parse(JSON.stringify(DEF));renderAll();toast('Reset to defaults');}
+function doReset(){const sv=S.saved||{b1:0,b2:0,b3:0};S=JSON.parse(JSON.stringify(DEF));S.saved=sv;renderAll();toast('Reset to defaults');}
 
 /* ── SHEETS ── */
 function openSheet(type,idx){
   const T=document.getElementById('sheet-title');
   const B=document.getElementById('sheet-body');
-  if(type==='inflation'){
-    T.textContent='Inflation Rate';
-    B.innerHTML=`<div class="fg"><label class="fl">Annual rate (%)</label><input class="fi" type="number" id="sf-v" value="${S.infl}" min="1" max="20" step="0.5" inputmode="decimal"></div>
-    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">Each expense can have its own rate. This default applies when adding new expenses.</p>
+  if(!S.saved) S.saved={b1:0,b2:0,b3:0};
+  if(type==='saved'){
+    const a=alloc();
+    T.textContent='Update Saved Balances';
+    B.innerHTML=`
+    <p style="font-size:.74rem;color:var(--text3);line-height:1.5;margin-bottom:14px">Enter what you have saved in each bucket right now. The progress tracker will update instantly.</p>
+    <div class="fg" style="margin-bottom:10px">
+      <label class="fl" style="color:#3B82F6">💧 ${S.bn1} — target ${L(a.id)}</label>
+      <div style="position:relative">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--text3);font-family:'Inter',sans-serif">₹</span>
+        <input class="fi" type="number" id="sf-b1" value="${S.saved.b1||0}" min="0" step="1000" inputmode="decimal" style="padding-left:22px">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label class="fl" style="color:#22c55e">⚖️ ${S.bn2} — target ${L(a.ko)}</label>
+      <div style="position:relative">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--text3);font-family:'Inter',sans-serif">₹</span>
+        <input class="fi" type="number" id="sf-b2" value="${S.saved.b2||0}" min="0" step="1000" inputmode="decimal" style="padding-left:22px">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:14px">
+      <label class="fl" style="color:#f59e0b">🏦 ${S.bn3} — target ${L(a.hd)}</label>
+      <div style="position:relative">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--text3);font-family:'Inter',sans-serif">₹</span>
+        <input class="fi" type="number" id="sf-b3" value="${S.saved.b3||0}" min="0" step="1000" inputmode="decimal" style="padding-left:22px">
+      </div>
+    </div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('saved')">Update</button></div>`;
+    setTimeout(()=>document.getElementById('sf-b1')?.focus(),320);
+  } else if(type==='inflation'){
+    T.textContent='Default Inflation Rate';
+    B.innerHTML=`<div class="fg"><label class="fl">Default rate for new expenses (%)</label><input class="fi" type="number" id="sf-v" value="${S.infl}" min="1" max="20" step="0.5" inputmode="decimal"></div>
+    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">This is only a starting value when you add a new expense. Each existing expense uses its own individual rate — changing this does not affect them.</p>
     <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('inflation')">Save</button></div>`;
   } else if(type==='years'){
     T.textContent='Coverage Years';
@@ -696,7 +878,6 @@ function openSheet(type,idx){
       <div class="fg"><label class="fl">Monthly (₹)</label><input class="fi" type="number" id="sf-eamt" value="${isNew?'':e.a}" min="0" step="100" inputmode="decimal" placeholder="0"></div>
       <div class="fg"><label class="fl">Inflation rate (%/yr)</label><input class="fi" type="number" id="sf-egrow" value="${e.g}" min="0" max="30" step="0.5" inputmode="decimal"></div>
     </div>
-    ${!isNew&&e.base!=null?`<p style="font-size:.72rem;color:var(--text3);margin-bottom:10px">Base ₹${e.base.toLocaleString('en-IN')} + maintenance ₹${(e.a-e.base).toLocaleString('en-IN')}</p>`:''}
     <div class="form-actions">
       ${!isNew?`<button class="btn" style="background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.3);padding:10px 15px;border-radius:var(--r);font-size:.88rem" onclick="delExpense(${idx});closeSheet()">Delete</button>`:''}
       <div style="display:flex;gap:9px;margin-left:auto">
@@ -716,8 +897,14 @@ function closeSheet(){
 }
 
 function save(type,idx){
-  if(type==='inflation'){const v=parseFloat(document.getElementById('sf-v').value);if(v>=1&&v<=20){S.infl=v;renderAll();closeSheet();toast('Saved');}}
-  else if(type==='years'){const v=parseInt(document.getElementById('sf-v').value);if(v>=1&&v<=10){S.yrs=v;renderAll();closeSheet();toast('Saved');}}
+  if(type==='saved'){
+    if(!S.saved) S.saved={b1:0,b2:0,b3:0};
+    S.saved.b1=Math.max(0,parseFloat(document.getElementById('sf-b1').value)||0);
+    S.saved.b2=Math.max(0,parseFloat(document.getElementById('sf-b2').value)||0);
+    S.saved.b3=Math.max(0,parseFloat(document.getElementById('sf-b3').value)||0);
+    renderAll(); closeSheet(); toast('Balances updated');
+  } else if(type==='inflation'){const v=parseFloat(document.getElementById('sf-v').value);if(v>=1&&v<=20){S.infl=v;renderAll();closeSheet();toast('Saved');}}
+  else if(type==='years'){const v=parseInt(document.getElementById('sf-v').value);if(v>=1&&v<=10){S.yrs=v;S.hm=(v-1)*12;renderAll();closeSheet();toast('Saved');}}
   else if(type==='bucket'){
     const n=document.getElementById('sf-bname').value.trim();
     const m=parseInt(document.getElementById('sf-bmo').value);
@@ -745,6 +932,73 @@ function selYr(y,max){
 }
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+/* ── BACKUP & RESTORE ── */
+function exportBackup(){
+  const data=JSON.stringify(S,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date();
+  const stamp=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+  a.href=url; a.download='ef-shield-backup-'+stamp+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Backup downloaded');
+}
+
+function importBackup(evt){
+  const file=evt.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const parsed=JSON.parse(e.target.result);
+      if(!parsed.exp||!Array.isArray(parsed.exp)||parsed.exp.length===0)
+        throw new Error('Invalid');
+      S={...JSON.parse(JSON.stringify(DEF)),...parsed,
+         exp:parsed.exp.map(ex=>({n:ex.n||'',a:Number(ex.a)||0,g:Number(ex.g)||0}))};
+      saveState(); renderAll();
+      toast('Backup restored');
+    }catch(err){
+      toast('Could not read file — is it a valid backup?');
+    }
+    evt.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+function copyShareLink(){
+  try{
+    const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+    const url=window.location.origin+window.location.pathname+'?d='+encoded;
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(()=>toast('Link copied — paste anywhere to share'));
+    } else {
+      const ta=document.createElement('textarea');
+      ta.value=url; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      toast('Link copied — paste anywhere to share');
+    }
+  }catch(e){ toast('Could not copy link'); }
+}
+
+// Check if page was opened via a share link
+(function(){
+  try{
+    const params=new URLSearchParams(window.location.search);
+    const d=params.get('d');
+    if(d){
+      const parsed=JSON.parse(decodeURIComponent(escape(atob(d))));
+      if(parsed.exp&&Array.isArray(parsed.exp)&&parsed.exp.length>0){
+        S={...JSON.parse(JSON.stringify(DEF)),...parsed,
+           exp:parsed.exp.map(ex=>({n:ex.n||'',a:Number(ex.a)||0,g:Number(ex.g)||0}))};
+        saveState();
+        window.history.replaceState({},'',window.location.pathname);
+        setTimeout(()=>toast('Settings loaded from shared link'),700);
+      }
+    }
+  }catch(e){}
+})();
 
 renderAll();
 </script>
