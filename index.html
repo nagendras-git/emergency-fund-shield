@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
+<title>Emergency Fund Shield</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EF Shield">
+<meta name="theme-color" content="#0d0d10">
+<script>
+(function(){
+  const m=JSON.stringify({name:"Emergency Fund Shield",short_name:"EF Shield",start_url:"./",display:"standalone",background_color:"#0d0d10",theme_color:"#0d0d10",orientation:"portrait"});
+  const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([m],{type:'application/json'}));document.head.appendChild(l);
+  if('serviceWorker'in navigator){const sw=`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'})),{scope:'/'}).catch(()=>{});}
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0d0d10;--surface:#141417;--surface2:#1e1e25;--surface3:#26262f;
+  --border:#4a4a60;--border2:#383850;
+  --text1:#f4f4fa;--text2:#c8c8e0;--text3:#b0b0cc;
+  --green:#22c55e;--green-bg:rgba(34,197,94,.1);--green-border:rgba(34,197,94,.25);
+  --red:#f87171;--red-bg:rgba(248,113,113,.1);
+  --blue:#3B82F6;
+  --nav-h:60px;--safe-b:env(safe-area-inset-bottom,0px);
+  --r:12px;--r-lg:16px;--r-xl:20px;
+  --ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);
+  --base:16px
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;overflow-x:hidden;font-size:var(--base);background:var(--bg)}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;max-width:100vw;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 4px);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::-webkit-scrollbar{width:0;height:0}
+
+/* header */
+.top-header{position:sticky;top:0;z-index:80;background:rgba(13,13,16,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);padding:calc(env(safe-area-inset-top,12px) + 8px) 16px 10px}
+.hdr-inner{width:100%;max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.hdr-title{font-size:1rem;font-weight:800;color:var(--text1);letter-spacing:-.3px}
+.hdr-title em{font-style:italic;color:var(--blue)}
+.hdr-sub{font-size:.65rem;color:var(--text3);margin-top:1px}
+
+/* tab bar */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(13,13,16,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);display:flex;align-items:flex-start;justify-content:center;padding-top:7px}
+.tab-bar-inner{width:100%;max-width:480px;display:flex;align-items:flex-start;justify-content:space-around}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:0;background:none;border:none;color:var(--text3);transition:color 120ms}
+.tab-item.active{color:var(--blue)}
+.tab-icon{height:26px;display:flex;align-items:center;justify-content:center}
+.tab-icon svg{width:1.35rem;height:1.35rem;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.35;transition:opacity 200ms}
+.tab-item.active .tab-icon svg{opacity:1;stroke:var(--blue)}
+.tab-label{font-size:.68rem;font-weight:700;letter-spacing:.2px}
+
+/* pages */
+.page{display:none;max-width:100%;overflow-x:hidden}
+.page.active{display:block;animation:pageIn .22s var(--ease) both}
+@keyframes pageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.container{width:100%;max-width:480px;margin:0 auto;padding:10px 14px 14px}
+
+/* section header collapsible */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:8px;transition:background 120ms}
+.sec-hdr:active{background:var(--surface3)}
+.sec-hdr-left{display:flex;align-items:center;gap:8px;min-width:0}
+.sec-hdr-title{font-size:.86rem;font-weight:600;color:var(--text1);display:inline-flex;align-items:center;gap:7px}
+.sec-hdr-title svg{opacity:.5;flex-shrink:0}
+.sec-badge{font-size:.68rem;font-weight:700;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:2px 8px;border-radius:99px;white-space:nowrap}
+.sec-badge.red{color:var(--red);background:var(--red-bg);border-color:rgba(248,113,113,.2)}
+.sec-badge.green{color:var(--green);background:var(--green-bg);border-color:var(--green-border)}
+.sec-caret{color:var(--text3);transition:transform .25s var(--ease);display:flex;align-items:center;flex-shrink:0}
+.sec-caret svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sec-caret.open{transform:rotate(180deg)}
+.sec-body{overflow:hidden;max-height:5000px;transition:max-height .32s var(--ease),opacity .2s ease;opacity:1}
+.sec-body.closed{max-height:0;opacity:0;pointer-events:none}
+
+/* row list */
+.row-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px}
+.row-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:transparent;border-bottom:1px solid var(--border2);transition:background 120ms}
+.row-item:last-child{border-bottom:none}
+.row-item.tap{cursor:pointer}
+.row-item.tap:active{background:var(--surface2)}
+.row-icon{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
+.row-icon svg{width:15px;height:15px;opacity:.85;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.row-body{flex:1;min-width:0}
+.row-title{font-size:.88rem;font-weight:600;color:var(--text1)}
+.row-sub{font-size:.72rem;color:var(--text3);margin-top:2px;line-height:1.4}
+.row-right{text-align:right;flex-shrink:0;display:flex;align-items:center;gap:6px}
+.row-value{font-size:.92rem;font-weight:700;color:var(--blue)}
+.chevron-right{width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* hero card — HOME */
+.hero-card{background:var(--surface);border:1px solid var(--green-border);border-radius:var(--r-xl);padding:20px 18px 16px;margin-bottom:10px;background:linear-gradient(135deg,rgba(34,197,94,.06) 0%,var(--surface) 60%)}
+.hero-eyebrow{font-size:.62rem;font-weight:700;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;opacity:.8}
+.hero-amount{font-size:2.6rem;font-weight:800;color:var(--green);letter-spacing:-.05em;line-height:1.1}
+.hero-desc{font-size:.75rem;color:var(--text2);margin-top:6px;line-height:1.5}
+.hero-formula-row{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.formula-chip{font-size:.68rem;font-weight:600;color:var(--text2);padding:4px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;white-space:nowrap}
+.formula-op{font-size:.75rem;color:var(--text3);font-weight:500}
+
+/* stat grid */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:13px 14px}
+.stat-lbl{font-size:.6rem;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.stat-val{font-size:1rem;font-weight:700;color:var(--text1)}
+.stat-val.red{color:var(--red)}.stat-val.blue{color:var(--blue)}.stat-val.green{color:var(--green)}
+
+/* progress bar */
+.prog-track{height:5px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;background:var(--blue);transition:width .5s var(--ease)}
+
+/* pills */
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:.63rem;font-weight:600}
+.pill-blue{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.25)}
+.pill-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'Inter',sans-serif;font-weight:700;border:none;cursor:pointer;transition:transform 150ms var(--spring),opacity 120ms;user-select:none}
+.btn:active{transform:scale(.94);opacity:.88}
+.btn-primary{background:var(--blue);color:#fff;padding:11px 18px;border-radius:var(--r);font-size:.88rem}
+.btn-ghost{background:var(--surface2);color:var(--text2);padding:10px 15px;border-radius:var(--r);font-size:.88rem;border:1px solid var(--border)}
+.btn-del{width:26px;height:26px;border-radius:50%;background:var(--red-bg);border:1.5px solid rgba(248,113,113,.4);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform 150ms var(--spring);color:var(--red);font-size:.7rem;flex-shrink:0;line-height:1}
+.btn-del:active{transform:scale(.88)}
+.add-row{display:flex;align-items:center;justify-content:center;padding:12px;border:1.5px dashed rgba(59,130,246,.35);border-radius:var(--r-lg);cursor:pointer;color:var(--blue);font-size:.86rem;font-weight:600;gap:6px;transition:all 120ms;margin-top:6px;background:rgba(59,130,246,.04)}
+.add-row:active{background:rgba(59,130,246,.1)}
+
+/* forms */
+.fg{margin-bottom:12px}
+.fl{font-size:.68rem;font-weight:700;color:var(--text3);margin-bottom:5px;display:block}
+.fi{width:100%;font-size:1rem !important;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);font-family:'Inter',sans-serif;font-weight:500;background:var(--surface2);color:var(--text1);outline:none;-webkit-appearance:none;transition:border-color 150ms,box-shadow 150ms;box-sizing:border-box}
+.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.12);background:var(--surface)}
+.fi::placeholder{color:var(--text3)}
+.fi-sel{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a4a60' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;cursor:pointer}
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.form-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--border2)}
+.form-sec{font-size:.72rem;font-weight:700;letter-spacing:0;color:var(--text3);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border2)}
+
+/* sheet */
+.sheet-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.72);opacity:0;pointer-events:none;transition:opacity .22s}
+.sheet-overlay.open{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:0;right:0;z-index:501;max-width:480px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;border:1px solid var(--border);border-bottom:none;max-height:min(88dvh,90vh);overflow-y:auto;overscroll-behavior:contain;transform:translateY(110%);transition:transform .3s var(--ease);padding-bottom:calc(16px + var(--safe-b));visibility:hidden}
+.sheet.open{transform:translateY(0);visibility:visible}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:10px auto 0}
+.sheet-hdr{position:sticky;top:0;z-index:2;padding:13px 16px 12px;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border2)}
+.sheet-title{font-size:.9rem;font-weight:800;color:var(--text1)}
+.sheet-close{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.82rem;color:var(--text2);line-height:1}
+.sheet-body{padding:14px 16px}
+
+/* note box */
+.note-box{font-size:.72rem;color:var(--text1);line-height:1.55;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border2);margin-top:6px}
+.note-box.warn{color:var(--blue);border-color:rgba(59,130,246,.25);background:rgba(59,130,246,.06)}
+.note-box.ok{color:var(--green);border-color:var(--green-border);background:var(--green-bg)}
+
+/* divider */
+.div{height:1px;background:var(--border2);margin:10px 0}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.tbl th{text-align:left;padding:7px 10px;font-size:.6rem;font-weight:700;letter-spacing:.07em;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border2);color:var(--text2)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.blue{color:var(--blue);font-weight:700}
+.tbl td.red{color:var(--red);font-weight:700}
+.tbl td.wt{color:var(--text1);font-weight:700}
+
+/* settings rows */
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border2)}
+.settings-row:last-child{border-bottom:none}
+.settings-lbl{font-size:.84rem;font-weight:600;color:var(--text1)}
+.settings-sub{font-size:.72rem;color:var(--text3);margin-top:2px}
+.size-btns{display:flex;gap:.35rem}
+.sz-btn{min-width:2rem;height:2rem;padding:0 .4rem;border:1px solid var(--border);border-radius:.45rem;background:var(--surface2);color:var(--text3);font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;font-family:'Inter',sans-serif;transition:all .12s}
+.sz-btn.on{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4);color:var(--blue)}
+
+/* year selector */
+.yr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px}
+.yr-selector{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.yr-selector::-webkit-scrollbar{display:none}
+.yr-pill{flex:1;min-width:0;padding:10px 4px;border:none;background:transparent;color:var(--text3);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;text-align:center;-webkit-appearance:none}
+.yr-pill.on{color:var(--blue);border-bottom-color:var(--blue);background:transparent}
+.yr-pill:hover:not(.on){color:var(--text2)}
+.yr-meta{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border2);flex-wrap:wrap}
+.yr-body-content{display:none}.yr-body-content.on{display:block}
+.plan-item:last-child{border-bottom:none}
+.plan-title{font-size:.84rem;font-weight:700;color:var(--text1);margin-bottom:4px}
+.plan-body{font-size:.75rem;color:var(--text2);line-height:1.6}
+
+/* toast */
+.toast{position:fixed;bottom:calc(var(--nav-h)+12px+var(--safe-b));left:50%;transform:translateX(-50%) translateY(6px);background:var(--surface);border:1px solid var(--border);color:var(--text1);padding:9px 20px;border-radius:99px;font-size:.88rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s var(--spring);white-space:nowrap;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="top-header">
+  <div class="hdr-inner">
+    <div>
+      <div class="hdr-title">Emergency Fund <em>Shield</em></div>
+      <div class="hdr-sub">3 bucket strategy &middot; inflation adjusted</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HOME PAGE ═══ -->
+<div id="page-home" class="page active">
+<div class="container">
+
+  <!-- Hero corpus card -->
+  <div class="hero-card">
+    <div class="hero-eyebrow">Total corpus needed</div>
+    <div class="hero-amount" id="h-total">₹0</div>
+    <div class="hero-desc" id="h-desc">calculating...</div>
+    <!-- clean formula chips -->
+    <div class="hero-formula-row" id="h-formula"></div>
+  </div>
+
+  <!-- 4 quick stats -->
+  <div class="stat-grid" id="h-stats"></div>
+
+  <!-- Inflation impact callout -->
+  <div class="row-list" id="h-impact"></div>
+
+  <!-- Quick actions -->
+  <div class="sec-hdr" onclick="toggleSec('sec-h-steps')">
+    <div class="sec-hdr-left"><span class="sec-hdr-title">Action plan</span></div>
+    <span class="sec-caret open" id="caret-sec-h-steps"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body" id="sec-h-steps">
+    <div class="row-list" id="h-steps"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══ MY PLAN PAGE ═══ -->
+<div id="page-plan" class="page">
+<div class="container">
+
+  <div class="sec-hdr" onclick="toggleSec('sec-p-expenses')">
+    <div class="sec-hdr-left">
+      <span class="sec-hdr-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 8h12M6 13l8.5 8"/><path d="M6 13h3a4 4 0 000-8H6v8"/></svg>
+        Monthly Expenses
+      </span>
+      <span class="sec-badge" id="p-exp-badge">₹0/mo</span>
+    </div>
+    <span class="sec-caret open" id="caret-sec-p-expenses"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body" id="sec-p-expenses">
+    <div class="row-list" id="p-expense-list"></div>
+    <div class="add-row" onclick="openSheet('expense',-1)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Expense
+    </div>
+  </div>
+
+  <div class="sec-hdr" onclick="toggleSec('sec-b-years')" style="margin-top:4px">
+    <div class="sec-hdr-left"><span class="sec-hdr-title">How expenses grow year by year</span></div>
+    <span class="sec-caret open" id="caret-sec-b-years"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body" id="sec-b-years">
+    <div id="yr-sections"></div>
+  </div>
+
+  <div class="sec-hdr" onclick="toggleSec('sec-b-notes')" style="margin-top:4px">
+    <div class="sec-hdr-left"><span class="sec-hdr-title">Plan notes</span></div>
+    <span class="sec-caret" id="caret-sec-b-notes"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body closed" id="sec-b-notes">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px;padding:4px 14px 8px" id="b-notes-list"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══ SETTINGS PAGE ═══ -->
+<div id="page-settings" class="page">
+<div class="container">
+
+  <div class="sec-hdr" onclick="toggleSec('sec-s-global')">
+    <div class="sec-hdr-left"><span class="sec-hdr-title">Global Settings</span></div>
+    <span class="sec-caret open" id="caret-sec-s-global"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body" id="sec-s-global">
+    <div class="row-list">
+      <div class="row-item tap" onclick="openSheet('inflation')">
+        <div class="row-icon"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div class="row-body"><div class="row-title">Inflation rate</div><div class="row-sub">Annual cost increase applied to all expenses</div></div>
+        <div class="row-right"><span class="row-value" id="disp-infl">6%</span><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div class="row-item tap" onclick="openSheet('years')">
+        <div class="row-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="row-body"><div class="row-title">Coverage years</div><div class="row-sub">Total duration of the emergency fund</div></div>
+        <div class="row-right"><span class="row-value" id="disp-yrs">5 yr</span><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-hdr" onclick="toggleSec('sec-s-buckets')" style="margin-top:4px">
+    <div class="sec-hdr-left">
+      <span class="sec-hdr-title">Bucket Split</span>
+      <span class="sec-badge" id="s-badge-mo">60 mo</span>
+    </div>
+    <span class="sec-caret open" id="caret-sec-s-buckets"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body" id="sec-s-buckets">
+    <div class="row-list" id="s-bucket-rows"></div>
+  </div>
+
+  <div class="sec-hdr" onclick="toggleSec('sec-s-appear')" style="margin-top:4px">
+    <div class="sec-hdr-left"><span class="sec-hdr-title">Appearance</span></div>
+    <span class="sec-caret open" id="caret-sec-s-appear"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body" id="sec-s-appear">
+    <div class="row-list">
+      <div class="row-item">
+        <div class="row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></div>
+        <div class="row-body"><div class="row-title">Text size</div><div class="row-sub">Adjust to your comfort level</div></div>
+        <div class="row-right">
+          <div class="size-btns">
+            <button class="sz-btn" id="sz14" onclick="setSize(14)">S</button>
+            <button class="sz-btn on" id="sz16" onclick="setSize(16)">M</button>
+            <button class="sz-btn" id="sz18" onclick="setSize(18)">L</button>
+            <button class="sz-btn" id="sz20" onclick="setSize(20)">XL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:4px 0 2px;margin-top:6px">
+    <button onclick="doReset()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--r-lg);background:transparent;color:var(--text3);font-size:.8rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.87"/></svg>
+      Reset all to defaults
+    </button>
+  </div>
+
+</div>
+</div>
+
+<!-- TAB BAR — 3 tabs -->
+<nav class="tab-bar">
+  <div class="tab-bar-inner">
+    <button class="tab-item active" onclick="showPage('home',this)">
+      <div class="tab-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div class="tab-label">Home</div>
+    </button>
+    <button class="tab-item" onclick="showPage('plan',this)">
+      <div class="tab-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+      <div class="tab-label">My Plan</div>
+    </button>
+    <button class="tab-item" onclick="showPage('settings',this)">
+      <div class="tab-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg></div>
+      <div class="tab-label">Settings</div>
+    </button>
+  </div>
+</nav>
+
+<!-- SHEET -->
+<div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr">
+    <div class="sheet-title" id="sheet-title">Edit</div>
+    <button class="sheet-close" onclick="closeSheet()">✕</button>
+  </div>
+  <div class="sheet-body" id="sheet-body"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── ICONS ── */
+const BICONS=[
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
+];
+const RUPEE_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 8h12M6 13l8.5 8"/><path d="M6 13h3a4 4 0 000-8H6v8"/></svg>';
+
+/* ── DEFAULTS ── */
+const DEF={infl:6,yrs:5,im:4,km:8,hm:48,
+  bn1:'IDFC Bank',bn2:'Kotak Arb',bn3:'HDFC BAF',
+  br1:6.5,br2:7.5,br3:11,
+  exp:[
+    {n:'House rent',a:36396,g:6.5,base:32000},
+    {n:'Household',a:15000,g:6},
+    {n:'Electricity water milk',a:5000,g:6},
+    {n:'Term insurance',a:4868,g:0},
+    {n:'Travel',a:5000,g:6},
+    {n:'Outside food',a:1500,g:6}
+  ]};
+let S=JSON.parse(JSON.stringify(DEF));
+
+/* ── SIZE ── */
+function setSize(px){
+  document.documentElement.style.setProperty('--base',px+'px');
+  [14,16,18,20].forEach(s=>{
+    const el=document.getElementById('sz'+s);if(!el)return;
+    const on=s===px;
+    el.style.background=on?'rgba(59,130,246,.15)':'var(--surface2)';
+    el.style.border=on?'1px solid rgba(59,130,246,.4)':'1px solid var(--border)';
+    el.style.color=on?'var(--blue)':'var(--text3)';
+  });
+  try{localStorage.setItem('efs-sz',px)}catch(e){}
+}
+(function(){try{const s=parseInt(localStorage.getItem('efs-sz'));if(s>=14&&s<=20)setSize(s);else setSize(16);}catch(e){setSize(16);}})();
+
+/* ── HELPERS ── */
+const R=n=>'\u20B9'+Math.round(n).toLocaleString('en-IN');
+const L=n=>{const l=n/1e5;return l>=1?'\u20B9'+l.toFixed(2)+'L':R(n)};
+const expAt=(e,m)=>e.a*Math.pow(1+(e.g||0)/100,m/12);
+const totAt=m=>S.exp.reduce((s,e)=>s+expAt(e,m),0);
+function alloc(){
+  let id=0,ko=0,hd=0;
+  for(let m=1;m<=S.im;m++)id+=totAt(m);
+  for(let m=S.im+1;m<=S.im+S.km;m++)ko+=totAt(m);
+  for(let m=S.im+S.km+1;m<=S.im+S.km+S.hm;m++)hd+=totAt(m);
+  return{id,ko,hd,tot:id+ko+hd};
+}
+
+/* ── PAGES ── */
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  renderAll();
+}
+
+function toggleSec(id){
+  const body=document.getElementById(id);
+  const caret=document.getElementById('caret-'+id);
+  const closed=body.classList.contains('closed');
+  body.classList.toggle('closed',!closed);
+  caret?.classList.toggle('open',closed);
+}
+
+/* ── RENDER ALL ── */
+function renderAll(){
+  const a=alloc();
+  const me=totAt(0);
+  const tm=S.im+S.km+S.hm;
+  const startYear=new Date().getFullYear();
+
+  renderHome(a,me,tm,startYear);
+  renderPlan(a,me,tm);
+  renderBuckets(a,tm,startYear);
+  renderSettingsPage();
+}
+
+/* ── HOME ── */
+function renderHome(a,me,tm,startYear){
+  document.getElementById('h-total').textContent=L(a.tot);
+
+  const endYear=startYear+S.yrs;
+  const meEnd=totAt(tm);
+  document.getElementById('h-desc').textContent=
+    startYear+' to '+endYear+' · '+tm+' months covered · '+S.infl+'% inflation';
+
+  // Clean formula: chips
+  // Plain English formula — no confusing multiplier
+  const totalInflPct=((totAt(tm)/me-1)*100).toFixed(0);
+  document.getElementById('h-formula').innerHTML=
+    `<span class="formula-chip">${R(me)}/mo now</span>`+
+    `<span class="formula-op">×</span>`+
+    `<span class="formula-chip">${tm} months</span>`+
+    `<span class="formula-op">+</span>`+
+    `<span class="formula-chip" style="color:var(--red);border-color:rgba(248,113,113,.25)">${S.infl}%/yr inflation over ${S.yrs} yrs</span>`+
+    `<span class="formula-op">=</span>`+
+    `<span class="formula-chip" style="color:var(--green);border-color:var(--green-border)">${L(a.tot)}</span>`;
+
+  // Stats
+  document.getElementById('h-stats').innerHTML=[
+    {l:'Monthly today',v:R(me),c:''},
+    {l:'Monthly in '+endYear,v:R(meEnd),c:'red'},
+    {l:'Total increase',v:'+'+((meEnd/me-1)*100).toFixed(1)+'%',c:'red'},
+    {l:'Months covered',v:tm+' mo',c:'blue'}
+  ].map(m=>`<div class="stat-card"><div class="stat-lbl">${m.l}</div><div class="stat-val ${m.c}">${m.v}</div></div>`).join('');
+
+  // Inflation impact
+  const topExp=S.exp.reduce((a,b)=>expAt(b,tm)-b.a>expAt(a,tm)-a.a?b:a,S.exp[0]);
+  const topInc=expAt(topExp,tm)-topExp.a;
+  document.getElementById('h-impact').innerHTML=`
+    <div class="row-item" style="cursor:default">
+      <div class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="row-body">
+        <div class="row-title">Biggest inflation impact</div>
+        <div class="row-sub">${topExp.n} rises by <span style="color:var(--red);font-weight:700">${R(Math.round(topInc))}/mo</span> over ${S.yrs} years at ${topExp.g}%/yr</div>
+      </div>
+    </div>
+    <div class="row-item" style="cursor:default">
+      <div class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+      <div class="row-body">
+        <div class="row-title">Without this fund</div>
+        <div class="row-sub">If expenses inflate and you have no fund, you need <span style="color:var(--red);font-weight:700">${R(meEnd)}/mo</span> by ${endYear} from your savings</div>
+      </div>
+    </div>`;
+
+  // Action steps
+  document.getElementById('h-steps').innerHTML=[
+    {icon:BICONS[0],t:'Put '+L(a.id)+' in '+S.bn1,s:'4 months liquid. Top up to ₹3L minimum for the 6.5% rate. Do this first.',v:L(a.id)},
+    {icon:BICONS[1],t:'Invest '+L(a.ko)+' in '+S.bn2,s:'8 months mid tier. SIP or lump sum. Wait 12 months before withdrawing to get tax free gains.',v:L(a.ko)},
+    {icon:BICONS[2],t:'Invest '+L(a.hd)+' in '+S.bn3,s:Math.round(S.hm/12)+' years growth layer. SIP or lump sum. Grows above inflation.',v:L(a.hd)},
+    {icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+     t:'Review every year',s:'Expenses grow with inflation each year. Top up buckets at the start of '+(startYear+1)+', '+(startYear+2)+' and '+(startYear+3)+'.',v:''}
+  ].map(row=>`<div class="row-item" style="cursor:default">
+    <div class="row-icon">${row.icon}</div>
+    <div class="row-body"><div class="row-title">${row.t}</div><div class="row-sub">${row.s}</div></div>
+    ${row.v?`<div class="row-right"><span class="row-value">${row.v}</span></div>`:''}
+  </div>`).join('');
+}
+
+/* ── PLAN ── */
+function renderPlan(a,me,tm){
+  document.getElementById('p-exp-badge').textContent=R(me)+'/mo';
+
+  document.getElementById('p-expense-list').innerHTML=S.exp.map((e,i)=>`
+    <div class="row-item">
+      <div class="row-icon">${RUPEE_ICON}</div>
+      <div class="row-body tap" onclick="openSheet('expense',${i})" style="cursor:pointer">
+        <div class="row-title">${e.n||'Unnamed'}</div>
+        <div class="row-sub">${R(e.a)}/mo · ${e.g>0?e.g+'% inflation/yr':'no inflation'}</div>
+      </div>
+      <div class="row-right"><button class="btn-del" onclick="delExpense(${i})">✕</button></div>
+    </div>`).join('');
+}
+
+/* ── BUCKETS / YEAR BY YEAR ── */
+function renderBuckets(a,tm,startYear){
+
+  const maxYrs=Math.min(5,S.yrs);
+  // Build single year card with pill selector
+  const pills=[];
+  const bodies=[];
+  for(let y=1;y<=maxYrs;y++){
+    const calYear=startYear+y;
+    const me=totAt(y*12),me0=totAt(0),chg=((me/me0-1)*100).toFixed(1);
+    const expRows=S.exp.map(e=>{
+      const v=expAt(e,y*12),inc=v-e.a,pc=e.a>0?((v/e.a-1)*100).toFixed(1):'0.0';
+      return`<tr>
+        <td>${e.n}</td>
+        <td class="blue">${R(v)}</td>
+        <td style="text-align:right">${parseFloat(pc)>0
+          ?`<span style="color:var(--red);font-weight:700;display:block">+${R(Math.round(inc))}</span><span style="color:var(--red);font-size:.65rem">+${pc}%</span>`
+          :'<span style="color:var(--text3)">—</span>'}</td>
+      </tr>`;
+    }).join('');
+    pills.push(`<button class="yr-pill${y===1?' on':''}" onclick="selYr(${y},${maxYrs})">${calYear}</button>`);
+    bodies.push(`<div class="yr-body-content${y===1?' on':''}" id="yrbody-${y}">
+      <div class="yr-meta">
+        <span class="sec-badge">${R(me)}/mo</span>
+        <span class="sec-badge red">+${chg}% vs today</span>
+      </div>
+      <table class="tbl" style="width:100%">
+        <thead><tr><th>Expense</th><th>Monthly</th><th style="text-align:right">Extra cost/mo</th></tr></thead>
+        <tbody>${expRows}</tbody>
+      </table>
+    </div>`);
+  }
+  document.getElementById('yr-sections').innerHTML=
+    `<div class="yr-card">
+      <div class="yr-selector">${pills.join('')}</div>
+      ${bodies.join('')}
+    </div>`;
+
+  document.getElementById('b-notes-list').innerHTML=[
+    {t:'Why 3 buckets?',b:'Bucket 1 is instant cash. Bucket 2 earns more but needs a day to redeem. Bucket 3 grows the most over years. Together they balance access speed and returns.'},
+    {t:'Inflation erodes the fund silently',b:'At '+S.infl+'% inflation, your monthly spend of '+R(totAt(0))+' today becomes '+R(totAt(tm))+' by year '+S.yrs+'. A fund built on today\'s expenses will be short exactly when you need it.'},
+    {t:'Kotak Arbitrage — wait 12 months',b:'Gains before 12 months are taxed at 20%. After 12 months, up to ₹1.25L of gains each year is completely tax free. Plan withdrawals accordingly.'},
+    {t:'HDFC BAF for years 2 to 5',b:'Parking 4 years of expenses at 4% savings rate means losing to inflation every year. BAF targets '+S.br3+'%+ by dynamically shifting between equity and debt.'}
+  ].map(n=>`<div class="plan-item"><div class="plan-title">${n.t}</div><div class="plan-body">${n.b}</div></div>`).join('');
+}
+
+/* ── SETTINGS PAGE ── */
+function renderSettingsPage(){
+  document.getElementById('disp-infl').textContent=S.infl+'%';
+  document.getElementById('disp-yrs').textContent=S.yrs+' yr';
+  document.getElementById('s-badge-mo').textContent=(S.im+S.km+S.hm)+' mo';
+
+  const bData=[
+    {name:S.bn1,mo:S.im,hint:'Liquid · instant',idx:0},
+    {name:S.bn2,mo:S.km,hint:'Mid tier · T+1',idx:1},
+    {name:S.bn3,mo:S.hm,hint:'Growth · long term',idx:2}
+  ];
+  document.getElementById('s-bucket-rows').innerHTML=bData.map(b=>`
+    <div class="row-item tap" onclick="openSheet('bucket',${b.idx})">
+      <div class="row-icon">${BICONS[b.idx]}</div>
+      <div class="row-body"><div class="row-title">${b.name}</div><div class="row-sub">${b.hint}</div></div>
+      <div class="row-right"><span class="pill pill-blue">${b.mo} mo</span><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>`).join('');
+}
+
+function delExpense(i){S.exp.splice(i,1);renderAll();toast('Removed');}
+function doReset(){S=JSON.parse(JSON.stringify(DEF));renderAll();toast('Reset to defaults');}
+
+/* ── SHEETS ── */
+function openSheet(type,idx){
+  const T=document.getElementById('sheet-title');
+  const B=document.getElementById('sheet-body');
+  if(type==='inflation'){
+    T.textContent='Inflation Rate';
+    B.innerHTML=`<div class="fg"><label class="fl">Annual rate (%)</label><input class="fi" type="number" id="sf-v" value="${S.infl}" min="1" max="20" step="0.5" inputmode="decimal"></div>
+    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">Each expense can have its own rate. This default applies when adding new expenses.</p>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('inflation')">Save</button></div>`;
+  } else if(type==='years'){
+    T.textContent='Coverage Years';
+    B.innerHTML=`<div class="fg"><label class="fl">Years (1–10)</label><input class="fi" type="number" id="sf-v" value="${S.yrs}" min="1" max="10" inputmode="numeric"></div>
+    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">5 years is the recommended minimum for a solid emergency fund.</p>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('years')">Save</button></div>`;
+  } else if(type==='bucket'){
+    const nm=['bn1','bn2','bn3'],ms=[S.im,S.km,S.hm],rs=[S.br1,S.br2,S.br3];
+    const hints=['Liquid savings or FD. Instant withdrawal.','Arbitrage fund. T+1 redemption.','Balanced or dynamic equity fund. 2–5 year horizon.'];
+    T.textContent='Bucket '+(idx+1)+' — '+S[nm[idx]];
+    B.innerHTML=`<div class="fg"><label class="fl">Fund or account name</label><input class="fi" type="text" id="sf-bname" value="${S[nm[idx]]}" placeholder="e.g. IDFC Bank"></div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Months to cover</label><input class="fi" type="number" id="sf-bmo" value="${ms[idx]}" min="1" max="72" inputmode="numeric"></div>
+      <div class="fg"><label class="fl">Expected return (%/yr)</label><input class="fi" type="number" id="sf-brate" value="${rs[idx]}" min="0" max="30" step="0.5" inputmode="decimal"></div>
+    </div>
+    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">${hints[idx]}</p>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('bucket',${idx})">Save</button></div>`;
+  } else if(type==='expense'){
+    const isNew=idx===-1;
+    const e=isNew?{n:'',a:0,g:S.infl}:{...S.exp[idx]};
+    T.textContent=isNew?'Add Expense':'Edit Expense';
+    B.innerHTML=`<div class="fg"><label class="fl">Name</label><input class="fi" type="text" id="sf-ename" value="${e.n}" placeholder="e.g. Grocery"></div>
+    <div class="form-row2">
+      <div class="fg"><label class="fl">Monthly (₹)</label><input class="fi" type="number" id="sf-eamt" value="${isNew?'':e.a}" min="0" step="100" inputmode="decimal" placeholder="0"></div>
+      <div class="fg"><label class="fl">Inflation rate (%/yr)</label><input class="fi" type="number" id="sf-egrow" value="${e.g}" min="0" max="30" step="0.5" inputmode="decimal"></div>
+    </div>
+    ${!isNew&&e.base!=null?`<p style="font-size:.72rem;color:var(--text3);margin-bottom:10px">Base ₹${e.base.toLocaleString('en-IN')} + maintenance ₹${(e.a-e.base).toLocaleString('en-IN')}</p>`:''}
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('expense',${idx})">${isNew?'Add':'Save'}</button></div>`;
+    setTimeout(()=>document.getElementById('sf-ename')?.focus(),320);
+  }
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+}
+
+function closeSheet(){
+  document.getElementById('sheet-overlay').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+}
+
+function save(type,idx){
+  if(type==='inflation'){const v=parseFloat(document.getElementById('sf-v').value);if(v>=1&&v<=20){S.infl=v;renderAll();closeSheet();toast('Saved');}}
+  else if(type==='years'){const v=parseInt(document.getElementById('sf-v').value);if(v>=1&&v<=10){S.yrs=v;renderAll();closeSheet();toast('Saved');}}
+  else if(type==='bucket'){
+    const n=document.getElementById('sf-bname').value.trim();
+    const m=parseInt(document.getElementById('sf-bmo').value);
+    const r=parseFloat(document.getElementById('sf-brate').value);
+    if(!n||m<1)return;
+    const keys=[['bn1','im','br1'],['bn2','km','br2'],['bn3','hm','br3']];
+    const [nk,mk,rk]=keys[idx];
+    S[nk]=n;S[mk]=m;S[rk]=r||0;
+    renderAll();closeSheet();toast('Bucket updated');
+  } else if(type==='expense'){
+    const n=document.getElementById('sf-ename').value.trim();
+    const a=parseFloat(document.getElementById('sf-eamt').value)||0;
+    const g=parseFloat(document.getElementById('sf-egrow').value)||0;
+    if(!n)return;
+    if(idx===-1){S.exp.push({n,a,g});}else{const old=S.exp[idx];S.exp[idx]={...old,n,a,g};}
+    renderAll();closeSheet();toast(idx===-1?'Expense added':'Saved');
+  }
+}
+
+function selYr(y,max){
+  for(let i=1;i<=max;i++){
+    document.getElementById('yrbody-'+i)?.classList.toggle('on',i===y);
+  }
+  document.querySelectorAll('.yr-pill').forEach((p,i)=>p.classList.toggle('on',i===y-1));
+}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+renderAll();
+</script>
+</body>
+</html>
