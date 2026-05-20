@@ -257,6 +257,19 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
     </div>
   </div>
 
+  <div class="sec-hdr" onclick="toggleSec('sec-p-calc')" style="margin-top:4px">
+    <div class="sec-hdr-left">
+      <span class="sec-hdr-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        How corpus is calculated
+      </span>
+    </div>
+    <span class="sec-caret" id="caret-sec-p-calc"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  </div>
+  <div class="sec-body closed" id="sec-p-calc">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px;padding:4px 14px 10px" id="p-calc-body"></div>
+  </div>
+
   <div class="sec-hdr" onclick="toggleSec('sec-b-years')" style="margin-top:4px">
     <div class="sec-hdr-left"><span class="sec-hdr-title">How expenses grow year by year</span></div>
     <span class="sec-caret open" id="caret-sec-b-years"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -499,34 +512,23 @@ function renderHome(a,me,tm,startYear){
       </div>
     </div>`;
 
-  // Compute per-bucket month breakdown for transparency
-  const b1months=[];
-  for(let m=1;m<=S.im;m++) b1months.push(totAt(m));
-  const b1flat=me*S.im;
-  const b1inflExtra=Math.round(a.id-b1flat);
-
-  const b2months=[];
-  for(let m=S.im+1;m<=S.im+S.km;m++) b2months.push(totAt(m));
-  const b2flat=me*S.km;
-  const b2inflExtra=Math.round(a.ko-b2flat);
-
-  // Action steps with clear calculation explanation
+  // Action steps — clean one-liners only
   document.getElementById('h-steps').innerHTML=[
     {icon:BICONS[0],
      t:'Put '+L(a.id)+' in '+S.bn1,
-     s:R(me)+'/mo × '+S.im+' months + '+R(b1inflExtra)+' inflation adjustment = '+L(a.id)+'. Top up to ₹3L minimum for the 6.5% rate.',
+     s:S.im+' months liquid. Keep above ₹3L to earn 6.5% interest. Use this first in any emergency.',
      v:L(a.id)},
     {icon:BICONS[1],
      t:'Invest '+L(a.ko)+' in '+S.bn2,
-     s:R(me)+'/mo × '+S.km+' months + '+R(b2inflExtra)+' inflation adjustment = '+L(a.ko)+'. SIP or lump sum. Wait 12 months before withdrawing for tax free gains.',
+     s:S.km+' months mid tier. SIP or lump sum. Do not withdraw before 12 months — gains are tax free after that.',
      v:L(a.ko)},
     {icon:BICONS[2],
      t:'Invest '+L(a.hd)+' in '+S.bn3,
-     s:R(me)+'/mo × '+S.hm+' months + inflation adjustment = '+L(a.hd)+'. SIP or lump sum. Grows above inflation over '+Math.round(S.hm/12)+' years.',
+     s:Math.round(S.hm/12)+' years growth layer. SIP or lump sum. Beats inflation over the long term.',
      v:L(a.hd)},
     {icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
      t:'Review every year',
-     s:'Expenses grow with inflation each year. Top up buckets at the start of '+(startYear+1)+', '+(startYear+2)+' and '+(startYear+3)+'.',
+     s:'Top up each bucket annually as your expenses rise. Next review: '+String(startYear+1)+'.',
      v:''}
   ].map(row=>`<div class="row-item" style="cursor:default">
     <div class="row-icon">${row.icon}</div>
@@ -548,6 +550,48 @@ function renderPlan(a,me,tm){
       </div>
       <div class="row-right"><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>`).join('');
+
+  // How corpus is calculated
+  const b1flat=Math.round(me*S.im);
+  const b1infl=Math.round(a.id)-b1flat;
+  const b2flat=Math.round(me*S.km);
+  const b2infl=Math.round(a.ko)-b2flat;
+  const b3flat=Math.round(me*S.hm);
+  const b3infl=Math.round(a.hd)-b3flat;
+
+  document.getElementById('p-calc-body').innerHTML=`
+    <div class="plan-item">
+      <div class="plan-title">Why not just monthly × months?</div>
+      <div class="plan-body">Your expenses are not fixed. They rise at ${S.infl}% every year due to inflation. So month 1 costs slightly more than today, month 2 more than month 1, and so on. The app adds up each month's actual inflated value — not today's flat amount.</div>
+    </div>
+    <div class="plan-item">
+      <div class="plan-title">Bucket 1 — ${S.bn1} (${S.im} months)</div>
+      <div class="plan-body">
+        Flat: ${R(me)} × ${S.im} = <strong style="color:var(--text1)">${R(b1flat)}</strong><br>
+        Inflation adds: <strong style="color:var(--red)">+${R(b1infl)}</strong> (costs rise each month at ${S.infl}%/yr)<br>
+        Total: <strong style="color:var(--blue)">${L(a.id)}</strong>
+      </div>
+    </div>
+    <div class="plan-item">
+      <div class="plan-title">Bucket 2 — ${S.bn2} (months ${S.im+1}–${S.im+S.km})</div>
+      <div class="plan-body">
+        Flat: ${R(me)} × ${S.km} = <strong style="color:var(--text1)">${R(b2flat)}</strong><br>
+        Inflation adds: <strong style="color:var(--red)">+${R(b2infl)}</strong> (these months start from month ${S.im+1}, already costlier)<br>
+        Total: <strong style="color:var(--blue)">${L(a.ko)}</strong>
+      </div>
+    </div>
+    <div class="plan-item">
+      <div class="plan-title">Bucket 3 — ${S.bn3} (${S.hm} months)</div>
+      <div class="plan-body">
+        Flat: ${R(me)} × ${S.hm} = <strong style="color:var(--text1)">${R(b3flat)}</strong><br>
+        Inflation adds: <strong style="color:var(--red)">+${R(b3infl)}</strong> across ${Math.round(S.hm/12)} years of compounding<br>
+        Total: <strong style="color:var(--blue)">${L(a.hd)}</strong>
+      </div>
+    </div>
+    <div class="plan-item" style="border-bottom:none">
+      <div class="plan-title">Grand total</div>
+      <div class="plan-body">${L(a.id)} + ${L(a.ko)} + ${L(a.hd)} = <strong style="color:var(--green);font-size:.88rem">${L(a.tot)}</strong></div>
+    </div>`;
 }
 
 /* ── BUCKETS / YEAR BY YEAR ── */
