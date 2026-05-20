@@ -499,13 +499,35 @@ function renderHome(a,me,tm,startYear){
       </div>
     </div>`;
 
-  // Action steps
+  // Compute per-bucket month breakdown for transparency
+  const b1months=[];
+  for(let m=1;m<=S.im;m++) b1months.push(totAt(m));
+  const b1flat=me*S.im;
+  const b1inflExtra=Math.round(a.id-b1flat);
+
+  const b2months=[];
+  for(let m=S.im+1;m<=S.im+S.km;m++) b2months.push(totAt(m));
+  const b2flat=me*S.km;
+  const b2inflExtra=Math.round(a.ko-b2flat);
+
+  // Action steps with clear calculation explanation
   document.getElementById('h-steps').innerHTML=[
-    {icon:BICONS[0],t:'Put '+L(a.id)+' in '+S.bn1,s:'4 months liquid. Top up to ₹3L minimum for the 6.5% rate. Do this first.',v:L(a.id)},
-    {icon:BICONS[1],t:'Invest '+L(a.ko)+' in '+S.bn2,s:'8 months mid tier. SIP or lump sum. Wait 12 months before withdrawing to get tax free gains.',v:L(a.ko)},
-    {icon:BICONS[2],t:'Invest '+L(a.hd)+' in '+S.bn3,s:Math.round(S.hm/12)+' years growth layer. SIP or lump sum. Grows above inflation.',v:L(a.hd)},
+    {icon:BICONS[0],
+     t:'Put '+L(a.id)+' in '+S.bn1,
+     s:R(me)+'/mo × '+S.im+' months + '+R(b1inflExtra)+' inflation adjustment = '+L(a.id)+'. Top up to ₹3L minimum for the 6.5% rate.',
+     v:L(a.id)},
+    {icon:BICONS[1],
+     t:'Invest '+L(a.ko)+' in '+S.bn2,
+     s:R(me)+'/mo × '+S.km+' months + '+R(b2inflExtra)+' inflation adjustment = '+L(a.ko)+'. SIP or lump sum. Wait 12 months before withdrawing for tax free gains.',
+     v:L(a.ko)},
+    {icon:BICONS[2],
+     t:'Invest '+L(a.hd)+' in '+S.bn3,
+     s:R(me)+'/mo × '+S.hm+' months + inflation adjustment = '+L(a.hd)+'. SIP or lump sum. Grows above inflation over '+Math.round(S.hm/12)+' years.',
+     v:L(a.hd)},
     {icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
-     t:'Review every year',s:'Expenses grow with inflation each year. Top up buckets at the start of '+(startYear+1)+', '+(startYear+2)+' and '+(startYear+3)+'.',v:''}
+     t:'Review every year',
+     s:'Expenses grow with inflation each year. Top up buckets at the start of '+(startYear+1)+', '+(startYear+2)+' and '+(startYear+3)+'.',
+     v:''}
   ].map(row=>`<div class="row-item" style="cursor:default">
     <div class="row-icon">${row.icon}</div>
     <div class="row-body"><div class="row-title">${row.t}</div><div class="row-sub">${row.s}</div></div>
@@ -518,13 +540,13 @@ function renderPlan(a,me,tm){
   document.getElementById('p-exp-badge').textContent=R(me)+'/mo';
 
   document.getElementById('p-expense-list').innerHTML=S.exp.map((e,i)=>`
-    <div class="row-item">
+    <div class="row-item tap" onclick="openSheet('expense',${i})" style="cursor:pointer">
       <div class="row-icon">${RUPEE_ICON}</div>
-      <div class="row-body tap" onclick="openSheet('expense',${i})" style="cursor:pointer">
+      <div class="row-body">
         <div class="row-title">${e.n||'Unnamed'}</div>
         <div class="row-sub">${R(e.a)}/mo · ${e.g>0?e.g+'% inflation/yr':'no inflation'}</div>
       </div>
-      <div class="row-right"><button class="btn-del" onclick="delExpense(${i})">✕</button></div>
+      <div class="row-right"><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>`).join('');
 }
 
@@ -631,7 +653,13 @@ function openSheet(type,idx){
       <div class="fg"><label class="fl">Inflation rate (%/yr)</label><input class="fi" type="number" id="sf-egrow" value="${e.g}" min="0" max="30" step="0.5" inputmode="decimal"></div>
     </div>
     ${!isNew&&e.base!=null?`<p style="font-size:.72rem;color:var(--text3);margin-bottom:10px">Base ₹${e.base.toLocaleString('en-IN')} + maintenance ₹${(e.a-e.base).toLocaleString('en-IN')}</p>`:''}
-    <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('expense',${idx})">${isNew?'Add':'Save'}</button></div>`;
+    <div class="form-actions">
+      ${!isNew?`<button class="btn" style="background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.3);padding:10px 15px;border-radius:var(--r);font-size:.88rem" onclick="delExpense(${idx});closeSheet()">Delete</button>`:''}
+      <div style="display:flex;gap:9px;margin-left:auto">
+        <button class="btn btn-ghost" onclick="closeSheet()">Cancel</button>
+        <button class="btn btn-primary" onclick="save('expense',${idx})">${isNew?'Add':'Save'}</button>
+      </div>
+    </div>`;
     setTimeout(()=>document.getElementById('sf-ename')?.focus(),320);
   }
   document.getElementById('sheet-overlay').classList.add('open');
