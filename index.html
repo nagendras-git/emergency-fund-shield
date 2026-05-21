@@ -38,6 +38,13 @@ html{height:100%;overflow-x:hidden;font-size:var(--base);background:var(--bg)}
 body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;max-width:100vw;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 4px);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 ::-webkit-scrollbar{width:0;height:0}
 
+/* mini stats bar above hero */
+.mini-stats{display:flex;gap:8px;margin-bottom:10px}
+.mini-stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.mini-stat-lbl{font-size:.6rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.mini-stat-val{font-size:1rem;font-weight:800;color:var(--text1)}
+.mini-stat-val.blue{color:var(--blue)}
+
 /* header */
 .top-header{position:sticky;top:0;z-index:80;background:rgba(13,13,16,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);padding:calc(env(safe-area-inset-top,12px) + 8px) 16px 10px}
 .hdr-inner{width:100%;max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
@@ -237,17 +244,36 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 <div id="page-home" class="page active">
 <div class="container">
 
-  <!-- Hero corpus card -->
+  <!-- Hero corpus card — all key numbers inside -->
   <div class="hero-card">
     <div class="hero-eyebrow">Total corpus needed</div>
     <div class="hero-amount" id="h-total">₹0</div>
-    <div class="hero-desc" id="h-desc">calculating...</div>
-    <!-- clean formula chips -->
-    <div class="hero-formula-row" id="h-formula"></div>
+
+    <!-- 2x2 stat grid inside hero -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:9px 11px">
+        <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600;margin-bottom:3px">Monthly today</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.95rem;color:var(--text1);font-weight:600" id="h-mini-monthly">₹0</div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:9px 11px">
+        <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600;margin-bottom:3px">Months covered</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.95rem;color:var(--text1);font-weight:600" id="h-mini-months">0 mo</div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:9px 11px">
+        <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600;margin-bottom:3px">Saved so far</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.95rem;color:var(--green);font-weight:600" id="h-mini-saved">₹0</div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:9px 11px">
+        <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600;margin-bottom:3px">Still needed</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.95rem;color:var(--red);font-weight:600" id="h-mini-needed">₹0</div>
+      </div>
+    </div>
   </div>
 
-  <!-- 4 quick stats -->
-  <div class="stat-grid" id="h-stats"></div>
+  <!-- hidden JS anchors -->
+  <div id="h-formula" style="display:none"></div>
+  <div id="h-desc" style="display:none"></div>
+  <div id="h-still-needed" style="display:none"></div>
 
   <!-- Progress tracker -->
   <div class="sec-hdr" onclick="toggleSec('sec-h-progress')">
@@ -257,9 +283,6 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
   <div class="sec-body" id="sec-h-progress">
     <div id="h-progress"></div>
   </div>
-
-  <!-- Inflation impact callout -->
-  <div class="row-list" id="h-impact"></div>
 
   <!-- Quick actions -->
   <div class="sec-hdr" onclick="toggleSec('sec-h-steps')">
@@ -279,10 +302,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 
   <div class="sec-hdr" onclick="toggleSec('sec-p-expenses')">
     <div class="sec-hdr-left">
-      <span class="sec-hdr-title">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 8h12M6 13l8.5 8"/><path d="M6 13h3a4 4 0 000-8H6v8"/></svg>
-        Monthly Expenses
-      </span>
+      <span class="sec-hdr-title">Monthly Expenses</span>
       <span class="sec-badge" id="p-exp-badge">₹0/mo</span>
     </div>
     <span class="sec-caret open" id="caret-sec-p-expenses"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -297,10 +317,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 
   <div class="sec-hdr" onclick="toggleSec('sec-p-calc')" style="margin-top:4px">
     <div class="sec-hdr-left">
-      <span class="sec-hdr-title">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        How corpus is calculated
-      </span>
+      <span class="sec-hdr-title">How corpus is calculated</span>
     </div>
     <span class="sec-caret" id="caret-sec-p-calc"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
   </div>
@@ -536,51 +553,18 @@ function renderAll(){
 /* ── HOME ── */
 function renderHome(a,me,tm,startYear){
   document.getElementById('h-total').textContent=L(a.tot);
+  document.getElementById('h-mini-monthly').textContent=R(me);
+  document.getElementById('h-mini-months').textContent=tm+' mo';
+
+  const sv=S.saved||{b1:0,b2:0,b3:0};
+  const totalSaved=(sv.b1||0)+(sv.b2||0)+(sv.b3||0);
+  const stillNeeded=Math.max(0,a.tot-totalSaved);
+  document.getElementById('h-mini-saved').textContent=L(totalSaved);
+  document.getElementById('h-mini-needed').textContent=L(stillNeeded);
 
   const endYear=startYear+S.yrs;
-  const meEnd=totAt(tm);
-  const actualInflPct=me>0?((meEnd/me-1)*100).toFixed(1):'0';
-  document.getElementById('h-desc').textContent=
-    startYear+' to '+endYear+' · '+tm+' months covered · expenses rise '+actualInflPct+'% over '+S.yrs+' yrs';
 
-  // Plain English formula
-  document.getElementById('h-formula').innerHTML=
-    `<span class="formula-chip">${R(me)}/mo now</span>`+
-    `<span class="formula-op">×</span>`+
-    `<span class="formula-chip">${tm} months</span>`+
-    `<span class="formula-op">+</span>`+
-    `<span class="formula-chip" style="color:var(--red);border-color:rgba(248,113,113,.25)">+${actualInflPct}% cost rise over ${S.yrs} yrs</span>`+
-    `<span class="formula-op">=</span>`+
-    `<span class="formula-chip" style="color:var(--green);border-color:var(--green-border)">${L(a.tot)}</span>`;
-
-  // Stats
-  document.getElementById('h-stats').innerHTML=[
-    {l:'Monthly today',v:R(me),c:''},
-    {l:'Monthly in '+endYear,v:R(meEnd),c:'red'},
-    {l:'Total increase',v:'+'+((meEnd/me-1)*100).toFixed(1)+'%',c:'red'},
-    {l:'Months covered',v:tm+' mo',c:'blue'}
-  ].map(m=>`<div class="stat-card"><div class="stat-lbl">${m.l}</div><div class="stat-val ${m.c}">${m.v}</div></div>`).join('');
-
-  // Inflation impact
-  const topExp=S.exp.reduce((a,b)=>expAt(b,tm)-b.a>expAt(a,tm)-a.a?b:a,S.exp[0]);
-  const topInc=expAt(topExp,tm)-topExp.a;
-  document.getElementById('h-impact').innerHTML=`
-    <div class="row-item" style="cursor:default">
-      <div class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-      <div class="row-body">
-        <div class="row-title">Biggest inflation impact</div>
-        <div class="row-sub">${topExp.n} rises by <span style="color:var(--red);font-weight:700">${R(Math.round(topInc))}/mo</span> over ${S.yrs} years at ${topExp.g}%/yr</div>
-      </div>
-    </div>
-    <div class="row-item" style="cursor:default">
-      <div class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-      <div class="row-body">
-        <div class="row-title">Without this fund</div>
-        <div class="row-sub">If expenses inflate and you have no fund, you need <span style="color:var(--red);font-weight:700">${R(meEnd)}/mo</span> by ${endYear} from your savings</div>
-      </div>
-    </div>`;
-
-  // Action steps — clean one-liners only
+  // Action steps
   document.getElementById('h-steps').innerHTML=[
     {icon:BICONS[0],
      t:'Put '+L(a.id)+' in '+S.bn1,
@@ -606,14 +590,21 @@ function renderHome(a,me,tm,startYear){
 }
 
 /* ── PROGRESS TRACKER ── */
+const B_SVG_ICONS=[
+  // Bank / savings
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M12 3L3 10h18L12 3z"/><line x1="12" y1="14" x2="12" y2="17"/></svg>',
+  // Scale / balance
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M6 7l-4 6h8L6 7z"/><path d="M18 7l-4 6h8l-4-6z"/><line x1="5" y1="21" x2="19" y2="21"/></svg>',
+  // Growth chart
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
+];
+
 function renderProgress(a){
   if(!S.saved) S.saved={b1:0,b2:0,b3:0};
   const sv=S.saved;
   const targets=[a.id,a.ko,a.hd];
   const names=[S.bn1,S.bn2,S.bn3];
-  const icons=['💧','⚖️','🏦'];
-  const colors=['#3B82F6','#22c55e','#f59e0b'];
-  const bgs=['rgba(59,130,246,.15)','rgba(34,197,94,.15)','rgba(245,158,11,.15)'];
+  const colors=['#3B82F6','#3B82F6','#3B82F6'];
   const keys=['b1','b2','b3'];
 
   const totalSaved=(sv.b1||0)+(sv.b2||0)+(sv.b3||0);
@@ -621,71 +612,72 @@ function renderProgress(a){
   const overallPct=totalNeeded>0?Math.min(100,(totalSaved/totalNeeded*100)):0;
   const overallPctR=overallPct.toFixed(1);
 
-  // update badge
   const badgeEl=document.getElementById('prog-badge');
   if(badgeEl){
     badgeEl.textContent=overallPctR+'%';
-    badgeEl.className='sec-badge '+(overallPct>=100?'green':overallPct>0?'':'' );
     badgeEl.style.color=overallPct>=100?'var(--green)':overallPct>0?'var(--blue)':'var(--text3)';
   }
 
-  const statusLabel=overallPct>=100
-    ? '<span class="status-chip done">✓ Fully funded</span>'
-    : overallPct>=50
-    ? '<span class="status-chip going">▲ On track</span>'
-    : overallPct>0
-    ? '<span class="status-chip going">→ Building</span>'
-    : '<span class="status-chip start">○ Not started</span>';
-
-  // bar colour
-  const barColor=overallPct>=100?'var(--green)':overallPct>=50?'var(--blue)':'#f59e0b';
-
-  let html=`<div class="prog-card">
-    <div class="prog-header">
-      <div class="prog-top">
-        <div>
-          <div class="prog-pct-wrap">
-            <div class="prog-pct" style="color:${barColor}">${overallPctR}%</div>
-            <div class="prog-pct-sub">of ${L(totalNeeded)} target</div>
-          </div>
-          <div style="font-size:.72rem;color:var(--text3);margin-top:2px">Saved so far: <strong style="color:var(--text1)">${L(totalSaved)}</strong> &nbsp;·&nbsp; Still needed: <strong style="color:var(--red)">${L(Math.max(0,totalNeeded-totalSaved))}</strong></div>
-          ${statusLabel}
-        </div>
-        <button class="prog-edit" onclick="openSheet('saved')">Update balances</button>
-      </div>
-      <div class="prog-bar-wrap">
-        <div class="prog-bar-track">
-          <div class="prog-bar-fill" style="width:${overallPct}%;background:${barColor}"></div>
-        </div>
-        <div class="prog-bar-labels"><span>${L(totalSaved)} saved</span><span>${L(totalNeeded)} goal</span></div>
-      </div>
-    </div>
-    <div class="bucket-rows">`;
+  let html=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px">`;
 
   keys.forEach((k,i)=>{
     const saved=sv[k]||0;
     const target=targets[i];
     const pct=target>0?Math.min(100,(saved/target*100)):0;
-    const pctR=pct.toFixed(0);
+    const pctR=Math.round(pct);
     const remaining=Math.max(0,target-saved);
-    html+=`<div class="bucket-prog-row" onclick="openSheet('saved')">
-      <div class="bp-icon" style="background:${bgs[i]}">${icons[i]}</div>
-      <div class="bp-body">
-        <div class="bp-name">${names[i]}</div>
-        <div class="bp-bar-track">
-          <div class="bp-bar-fill" style="width:${pct}%;background:${colors[i]}"></div>
+    const detailId='bdet-'+i;
+
+    html+=`
+    <div style="padding:11px 14px;${i<2?'border-bottom:1px solid var(--border2)':''}">
+      <!-- compact row: icon + name + bar + pct -->
+      <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="toggleBucketDetail('${detailId}',this)">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2)">${B_SVG_ICONS[i]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.8rem;font-weight:600;color:var(--text1);margin-bottom:5px">${names[i]}</div>
+          <div style="height:4px;background:var(--surface3);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${colors[i]};border-radius:99px;transition:width .35s cubic-bezier(.16,1,.3,1)"></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <span style="font-size:.82rem;font-weight:800;color:${colors[i]}">${pctR}%</span>
+          <svg id="caret-${detailId}" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
       </div>
-      <div class="bp-right">
-        <div class="bp-saved" style="color:${colors[i]}">${pctR}%</div>
-        <div class="bp-target">${L(saved)} / ${L(target)}</div>
-        ${remaining>0?`<div style="font-size:.58rem;color:var(--text3)">₹${Math.round(remaining/1e5*100)/100}L left</div>`:'<div style="font-size:.6rem;color:var(--green);font-weight:700">✓ Done</div>'}
+      <!-- expandable detail -->
+      <div id="${detailId}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2)">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
+            <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">Saved</div>
+            <div style="font-size:.78rem;font-weight:700;color:var(--green)">${L(saved)}</div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
+            <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">Target</div>
+            <div style="font-size:.78rem;font-weight:700;color:var(--text1)">${L(target)}</div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
+            <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">${remaining>0?'Left':'Status'}</div>
+            <div style="font-size:.78rem;font-weight:700;color:${remaining>0?'var(--red)':'var(--green)'}">${remaining>0?L(remaining):'Done ✓'}</div>
+          </div>
+        </div>
+        <button onclick="openSheet('saved')" style="display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:5px 12px;border-radius:99px;cursor:pointer;font-family:inherit">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Update balance
+        </button>
       </div>
     </div>`;
   });
 
-  html+=`</div></div>`;
+  html+=`</div>`;
   document.getElementById('h-progress').innerHTML=html;
+}
+
+function toggleBucketDetail(id, row){
+  const det=document.getElementById(id);
+  const caret=document.getElementById('caret-'+id);
+  const open=det.style.display==='block';
+  det.style.display=open?'none':'block';
+  if(caret) caret.style.transform=open?'':'rotate(180deg)';
 }
 
 /* ── PLAN ── */
@@ -762,7 +754,7 @@ function renderBuckets(a,tm,startYear){
         <td class="blue">${R(v)}</td>
         <td style="text-align:right">${parseFloat(pc)>0
           ?`<span style="color:var(--red);font-weight:700;display:block">+${R(Math.round(inc))}</span><span style="color:var(--red);font-size:.65rem">+${pc}%</span>`
-          :'<span style="color:var(--text3)">—</span>'}</td>
+          :'<span style="color:var(--text3);font-size:.7rem">No cost</span>'}</td>
       </tr>`;
     }).join('');
     pills.push(`<button class="yr-pill${y===1?' on':''}" onclick="selYr(${y},${maxYrs})">${calYear}</button>`);
