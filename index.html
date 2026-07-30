@@ -256,7 +256,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
         <div class="hdr-name">Shield</div>
       </div>
     </div>
-    <span style="font-size:.68rem;font-weight:600;color:var(--text3);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:99px">3-bucket strategy</span>
+    <span style="font-size:.68rem;font-weight:600;color:var(--text3);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:99px">2-bucket strategy</span>
   </div>
 </div>
 
@@ -389,7 +389,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
       </div>
       <div class="row-item tap" onclick="openSheet('years')">
         <div class="row-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div class="row-body"><div class="row-title">Coverage years</div><div class="row-sub">Total duration of the emergency fund</div></div>
+        <div class="row-body"><div class="row-title">Coverage years</div><div class="row-sub">Years shown in the "expenses grow year by year" chart</div></div>
         <div class="row-right"><span class="row-value" id="disp-yrs">5 yr</span><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
     </div>
@@ -506,16 +506,15 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 /* ── ICONS ── */
 const BICONS=[
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
 ];
 const RUPEE_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 8h12M6 13l8.5 8"/><path d="M6 13h3a4 4 0 000-8H6v8"/></svg>';
 
 /* ── DEFAULTS ── */
-const DEF={infl:6,yrs:5,im:4,km:8,hm:48,
-  bn1:'IDFC Bank',bn2:'Kotak Arb',bn3:'HDFC BAF',
-  br1:6.5,br2:7.5,br3:11,
-  saved:{b1:0,b2:0,b3:0},
+const DEF={infl:6,yrs:5,im:4,km:8,
+  bn1:'IDFC Bank',bn2:'Kotak Arb',
+  br1:6.5,br2:7.5,
+  saved:{b1:0,b2:0},
   exp:[
     {n:'House rent',a:32000,g:6.5},
     {n:'Household',a:15000,g:6},
@@ -549,11 +548,10 @@ const L=n=>{const l=n/1e5;return l>=1?'\u20B9'+l.toFixed(2)+'L':R(n)};
 const expAt=(e,m)=>e.a*Math.pow(1+(e.g||0)/100,m/12);
 const totAt=m=>S.exp.reduce((s,e)=>s+expAt(e,m),0);
 function alloc(){
-  let id=0,ko=0,hd=0;
+  let id=0,ko=0;
   for(let m=1;m<=S.im;m++)id+=totAt(m);
   for(let m=S.im+1;m<=S.im+S.km;m++)ko+=totAt(m);
-  for(let m=S.im+S.km+1;m<=S.im+S.km+S.hm;m++)hd+=totAt(m);
-  return{id,ko,hd,tot:id+ko+hd};
+  return{id,ko,tot:id+ko};
 }
 
 /* ── PAGES ── */
@@ -578,7 +576,7 @@ function renderAll(){
   saveState();
   const a=alloc();
   const me=totAt(0);
-  const tm=S.im+S.km+S.hm;
+  const tm=S.im+S.km;
   const startYear=new Date().getFullYear();
 
   renderHome(a,me,tm,startYear);
@@ -594,8 +592,8 @@ function renderHome(a,me,tm,startYear){
   document.getElementById('h-mini-monthly').textContent=R(me);
   document.getElementById('h-mini-months').textContent=tm+' mo / '+S.yrs+' yr';
 
-  const sv=S.saved||{b1:0,b2:0,b3:0};
-  const totalSaved=(sv.b1||0)+(sv.b2||0)+(sv.b3||0);
+  const sv=S.saved||{b1:0,b2:0};
+  const totalSaved=(sv.b1||0)+(sv.b2||0);
   const stillNeeded=Math.max(0,a.tot-totalSaved);
   document.getElementById('h-mini-saved').textContent=L(totalSaved);
   document.getElementById('h-mini-needed').textContent=L(stillNeeded);
@@ -612,10 +610,6 @@ function renderHome(a,me,tm,startYear){
      t:'Invest '+L(a.ko)+' in '+S.bn2,
      s:S.km+' months mid tier. SIP or lump sum. Do not withdraw before 12 months — gains are tax free after that.',
      v:L(a.ko)},
-    {icon:BICONS[2],
-     t:'Invest '+L(a.hd)+' in '+S.bn3,
-     s:Math.round(S.hm/12)+' years growth layer. SIP or lump sum. Beats inflation over the long term.',
-     v:L(a.hd)},
     {icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
      t:'Review every year',
      s:'Top up each bucket annually as your expenses rise. Next review: '+String(startYear+1)+'.',
@@ -632,20 +626,18 @@ const B_SVG_ICONS=[
   // Bank / savings
   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M12 3L3 10h18L12 3z"/><line x1="12" y1="14" x2="12" y2="17"/></svg>',
   // Scale / balance
-  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M6 7l-4 6h8L6 7z"/><path d="M18 7l-4 6h8l-4-6z"/><line x1="5" y1="21" x2="19" y2="21"/></svg>',
-  // Growth chart
-  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
+  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M6 7l-4 6h8L6 7z"/><path d="M18 7l-4 6h8l-4-6z"/><line x1="5" y1="21" x2="19" y2="21"/></svg>'
 ];
 
 function renderProgress(a){
-  if(!S.saved) S.saved={b1:0,b2:0,b3:0};
+  if(!S.saved) S.saved={b1:0,b2:0};
   const sv=S.saved;
-  const targets=[a.id,a.ko,a.hd];
-  const names=[S.bn1,S.bn2,S.bn3];
-  const colors=['#3B82F6','#3B82F6','#3B82F6'];
-  const keys=['b1','b2','b3'];
+  const targets=[a.id,a.ko];
+  const names=[S.bn1,S.bn2];
+  const colors=['#3B82F6','#3B82F6'];
+  const keys=['b1','b2'];
 
-  const totalSaved=(sv.b1||0)+(sv.b2||0)+(sv.b3||0);
+  const totalSaved=(sv.b1||0)+(sv.b2||0);
   const totalNeeded=a.tot;
   const overallPct=totalNeeded>0?Math.min(100,(totalSaved/totalNeeded*100)):0;
   const overallPctR=overallPct.toFixed(1);
@@ -667,7 +659,7 @@ function renderProgress(a){
     const detailId='bdet-'+i;
 
     html+=`
-    <div style="padding:11px 14px;${i<2?'border-bottom:1px solid var(--border2)':''}">
+    <div style="padding:11px 14px;${i<keys.length-1?'border-bottom:1px solid var(--border2)':''}">
       <!-- compact row: icon + name + bar + pct -->
       <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="toggleBucketDetail('${detailId}',this)">
         <div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2)">${B_SVG_ICONS[i]}</div>
@@ -737,8 +729,6 @@ function renderPlan(a,me,tm){
   const b1infl=Math.round(a.id)-b1flat;
   const b2flat=Math.round(me*S.km);
   const b2infl=Math.round(a.ko)-b2flat;
-  const b3flat=Math.round(me*S.hm);
-  const b3infl=Math.round(a.hd)-b3flat;
 
   document.getElementById('p-calc-body').innerHTML=`
     <div class="plan-item">
@@ -761,17 +751,9 @@ function renderPlan(a,me,tm){
         Total: <strong style="color:var(--blue)">${L(a.ko)}</strong>
       </div>
     </div>
-    <div class="plan-item">
-      <div class="plan-title">Bucket 3 — ${S.bn3} (${S.hm} months)</div>
-      <div class="plan-body">
-        Flat: ${R(me)} × ${S.hm} = <strong style="color:var(--text1)">${R(b3flat)}</strong><br>
-        Inflation adds: <strong style="color:var(--red)">+${R(b3infl)}</strong> across ${Math.round(S.hm/12)} years of compounding<br>
-        Total: <strong style="color:var(--blue)">${L(a.hd)}</strong>
-      </div>
-    </div>
     <div class="plan-item" style="border-bottom:none">
       <div class="plan-title">Grand total</div>
-      <div class="plan-body">${L(a.id)} + ${L(a.ko)} + ${L(a.hd)} = <strong style="color:var(--green);font-size:.88rem">${L(a.tot)}</strong></div>
+      <div class="plan-body">${L(a.id)} + ${L(a.ko)} = <strong style="color:var(--green);font-size:.88rem">${L(a.tot)}</strong></div>
     </div>`;
 }
 
@@ -816,10 +798,9 @@ function renderBuckets(a,tm,startYear){
   const meNow=totAt(0),meEnd2=totAt(tm);
   const actualRise=meNow>0?((meEnd2/meNow-1)*100).toFixed(1):'0';
   document.getElementById('b-notes-list').innerHTML=[
-    {t:'Why 3 buckets?',b:'Bucket 1 is instant cash. Bucket 2 earns more but needs a day to redeem. Bucket 3 grows the most over years. Together they balance access speed and returns.'},
+    {t:'Why 2 buckets?',b:'Bucket 1 is instant cash for the first shock. Bucket 2 earns more but needs a day to redeem. Together they cover the full emergency fund with zero equity exposure — pure capital protection, no market risk.'},
     {t:'Inflation erodes the fund silently',b:'Your monthly spend of '+R(meNow)+' today will grow by '+actualRise+'% to '+R(meEnd2)+' by year '+S.yrs+' — because each expense rises at its own inflation rate. A fund built on today\'s numbers will be short exactly when you need it.'},
-    {t:'Kotak Arbitrage — wait 12 months',b:'Gains before 12 months are taxed at 20%. After 12 months, up to ₹1.25L of gains each year is completely tax free. Plan withdrawals accordingly.'},
-    {t:'HDFC BAF for years 2 to 5',b:'Parking 4 years of expenses at 4% savings rate means losing to inflation every year. BAF targets '+S.br3+'%+ by dynamically shifting between equity and debt.'}
+    {t:'Kotak Arbitrage — wait 12 months',b:'Gains before 12 months are taxed at 20%. After 12 months, up to ₹1.25L of gains each year is completely tax free. Plan withdrawals accordingly.'}
   ].map(n=>`<div class="plan-item"><div class="plan-title">${n.t}</div><div class="plan-body">${n.b}</div></div>`).join('');
 }
 
@@ -827,12 +808,11 @@ function renderBuckets(a,tm,startYear){
 function renderSettingsPage(){
   document.getElementById('disp-infl').textContent=S.infl+'%';
   document.getElementById('disp-yrs').textContent=S.yrs+' yr';
-  document.getElementById('s-badge-mo').textContent=(S.im+S.km+S.hm)+' mo';
+  document.getElementById('s-badge-mo').textContent=(S.im+S.km)+' mo';
 
   const bData=[
     {name:S.bn1,mo:S.im,hint:'Liquid · instant',idx:0},
-    {name:S.bn2,mo:S.km,hint:'Mid tier · T+1',idx:1},
-    {name:S.bn3,mo:S.hm,hint:'Growth · long term',idx:2}
+    {name:S.bn2,mo:S.km,hint:'Mid tier · T+1',idx:1}
   ];
   document.getElementById('s-bucket-rows').innerHTML=bData.map(b=>`
     <div class="row-item tap" onclick="openSheet('bucket',${b.idx})">
@@ -843,13 +823,13 @@ function renderSettingsPage(){
 }
 
 function delExpense(i){S.exp.splice(i,1);renderAll();toast('Removed');}
-function doReset(){const sv=S.saved||{b1:0,b2:0,b3:0};S=JSON.parse(JSON.stringify(DEF));S.saved=sv;renderAll();toast('Reset to defaults');}
+function doReset(){const sv=S.saved||{b1:0,b2:0};S=JSON.parse(JSON.stringify(DEF));S.saved=sv;renderAll();toast('Reset to defaults');}
 
 /* ── SHEETS ── */
 function openSheet(type,idx){
   const T=document.getElementById('sheet-title');
   const B=document.getElementById('sheet-body');
-  if(!S.saved) S.saved={b1:0,b2:0,b3:0};
+  if(!S.saved) S.saved={b1:0,b2:0};
   if(type==='saved'){
     const a=alloc();
     T.textContent='Update Saved Balances';
@@ -862,18 +842,11 @@ function openSheet(type,idx){
         <input class="fi" type="number" id="sf-b1" value="${S.saved.b1||0}" min="0" step="1000" inputmode="decimal" style="padding-left:22px">
       </div>
     </div>
-    <div class="fg" style="margin-bottom:10px">
+    <div class="fg" style="margin-bottom:14px">
       <label class="fl" style="color:#22c55e">⚖️ ${S.bn2} — target ${L(a.ko)}</label>
       <div style="position:relative">
         <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--text3);font-family:'Inter',sans-serif">₹</span>
         <input class="fi" type="number" id="sf-b2" value="${S.saved.b2||0}" min="0" step="1000" inputmode="decimal" style="padding-left:22px">
-      </div>
-    </div>
-    <div class="fg" style="margin-bottom:14px">
-      <label class="fl" style="color:#f59e0b">🏦 ${S.bn3} — target ${L(a.hd)}</label>
-      <div style="position:relative">
-        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--text3);font-family:'Inter',sans-serif">₹</span>
-        <input class="fi" type="number" id="sf-b3" value="${S.saved.b3||0}" min="0" step="1000" inputmode="decimal" style="padding-left:22px">
       </div>
     </div>
     <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('saved')">Update</button></div>`;
@@ -889,8 +862,8 @@ function openSheet(type,idx){
     <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">5 years is the recommended minimum for a solid emergency fund.</p>
     <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('years')">Save</button></div>`;
   } else if(type==='bucket'){
-    const nm=['bn1','bn2','bn3'],ms=[S.im,S.km,S.hm],rs=[S.br1,S.br2,S.br3];
-    const hints=['Liquid savings or FD. Instant withdrawal.','Arbitrage fund. T+1 redemption.','Balanced or dynamic equity fund. 2–5 year horizon.'];
+    const nm=['bn1','bn2'],ms=[S.im,S.km],rs=[S.br1,S.br2];
+    const hints=['Liquid savings or FD. Instant withdrawal.','Arbitrage fund. T+1 redemption.'];
     T.textContent='Bucket '+(idx+1)+' — '+S[nm[idx]];
     B.innerHTML=`<div class="fg"><label class="fl">Fund or account name</label><input class="fi" type="text" id="sf-bname" value="${S[nm[idx]]}" placeholder="e.g. IDFC Bank"></div>
     <div class="form-row2">
@@ -928,19 +901,18 @@ function closeSheet(){
 
 function save(type,idx){
   if(type==='saved'){
-    if(!S.saved) S.saved={b1:0,b2:0,b3:0};
+    if(!S.saved) S.saved={b1:0,b2:0};
     S.saved.b1=Math.max(0,parseFloat(document.getElementById('sf-b1').value)||0);
     S.saved.b2=Math.max(0,parseFloat(document.getElementById('sf-b2').value)||0);
-    S.saved.b3=Math.max(0,parseFloat(document.getElementById('sf-b3').value)||0);
     renderAll(); closeSheet(); toast('Balances updated');
   } else if(type==='inflation'){const v=parseFloat(document.getElementById('sf-v').value);if(v>=1&&v<=20){S.infl=v;renderAll();closeSheet();toast('Saved');}}
-  else if(type==='years'){const v=parseInt(document.getElementById('sf-v').value);if(v>=1&&v<=10){S.yrs=v;S.hm=(v-1)*12;renderAll();closeSheet();toast('Saved');}}
+  else if(type==='years'){const v=parseInt(document.getElementById('sf-v').value);if(v>=1&&v<=10){S.yrs=v;renderAll();closeSheet();toast('Saved');}}
   else if(type==='bucket'){
     const n=document.getElementById('sf-bname').value.trim();
     const m=parseInt(document.getElementById('sf-bmo').value);
     const r=parseFloat(document.getElementById('sf-brate').value);
     if(!n||m<1)return;
-    const keys=[['bn1','im','br1'],['bn2','km','br2'],['bn3','hm','br3']];
+    const keys=[['bn1','im','br1'],['bn2','km','br2']];
     const [nk,mk,rk]=keys[idx];
     S[nk]=n;S[mk]=m;S[rk]=r||0;
     renderAll();closeSheet();toast('Bucket updated');
