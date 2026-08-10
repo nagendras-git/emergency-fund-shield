@@ -201,7 +201,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 .yr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px}
 .yr-selector{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .yr-selector::-webkit-scrollbar{display:none}
-.yr-pill{flex:1;min-width:0;padding:10px 4px;border:none;background:transparent;color:var(--text3);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;text-align:center;-webkit-appearance:none}
+.yr-pill{flex:1 0 auto;min-width:62px;padding:10px 4px;border:none;background:transparent;color:var(--text3);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;text-align:center;-webkit-appearance:none}
 .yr-pill.on{color:var(--blue);border-bottom-color:var(--blue);background:transparent}
 .yr-pill:hover:not(.on){color:var(--text2)}
 .yr-meta{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border2);flex-wrap:wrap}
@@ -276,7 +276,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
         <div class="summary-cell-val" style="color:var(--green)" id="h-mini-monthly">₹0</div>
       </div>
       <div class="summary-cell">
-        <div class="summary-cell-lbl">Months / Years</div>
+        <div class="summary-cell-lbl">Coverage</div>
         <div class="summary-cell-val" style="color:var(--blue)" id="h-mini-months">0 mo</div>
       </div>
       <div class="summary-cell">
@@ -386,11 +386,6 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
         <div class="row-icon"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
         <div class="row-body"><div class="row-title">Inflation rate</div><div class="row-sub">Annual cost increase applied to all expenses</div></div>
         <div class="row-right"><span class="row-value" id="disp-infl">6%</span><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
-      <div class="row-item tap" onclick="openSheet('years')">
-        <div class="row-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div class="row-body"><div class="row-title">Coverage years</div><div class="row-sub">Years shown in the "expenses grow year by year" chart</div></div>
-        <div class="row-right"><span class="row-value" id="disp-yrs">5 yr</span><svg class="chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
     </div>
   </div>
@@ -511,7 +506,7 @@ const BICONS=[
 const RUPEE_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 8h12M6 13l8.5 8"/><path d="M6 13h3a4 4 0 000-8H6v8"/></svg>';
 
 /* ── DEFAULTS ── */
-const DEF={infl:6,yrs:5,tm:12,
+const DEF={infl:6,tm:12,
   fn:'Bank Savings / FD',
   fr:6.5,
   saved:{amt:0},
@@ -533,6 +528,7 @@ function migrateState(saved){
     if(saved.saved&&(saved.saved.b1!=null||saved.saved.b2!=null))S.saved={amt:(Number(saved.saved.b1)||0)+(Number(saved.saved.b2)||0)};
     delete S.im;delete S.km;delete S.bn1;delete S.bn2;delete S.br1;delete S.br2;
   }
+  delete S.yrs;
   if(!S.saved||S.saved.amt==null)S.saved={amt:Number(S.saved&&S.saved.b1||0)+Number(S.saved&&S.saved.b2||0)};
 }
 function loadState(){try{const raw=localStorage.getItem('efs-state');if(raw){const saved=JSON.parse(raw);// merge carefully so new DEF fields survive
@@ -559,6 +555,7 @@ function setSize(px){
 /* ── HELPERS ── */
 const R=n=>'\u20B9'+Math.round(n).toLocaleString('en-IN');
 const L=n=>{const l=n/1e5;return l>=1?'\u20B9'+l.toFixed(2)+'L':R(n)};
+const fmtCoverage=m=>{if(m<12)return m+' mo';const y=Math.floor(m/12),r=m%12;return m+' mo ('+y+'y'+(r?' '+r+'m':'')+')'};
 const expAt=(e,m)=>e.a*Math.pow(1+(e.g||0)/100,m/12);
 const totAt=m=>S.exp.reduce((s,e)=>s+expAt(e,m),0);
 function alloc(){
@@ -603,7 +600,7 @@ function renderAll(){
 function renderHome(a,me,tm,startYear){
   document.getElementById('h-total').textContent=L(a.tot);
   document.getElementById('h-mini-monthly').textContent=R(me);
-  document.getElementById('h-mini-months').textContent=tm+' mo / '+S.yrs+' yr';
+  document.getElementById('h-mini-months').textContent=fmtCoverage(tm);
 
   const sv=S.saved||{amt:0};
   const totalSaved=sv.amt||0;
@@ -613,8 +610,6 @@ function renderHome(a,me,tm,startYear){
 
   const chip=document.getElementById('hdr-strategy');
   if(chip)chip.textContent=tm+'-month single fund';
-
-  const endYear=startYear+S.yrs;
 
   // Action steps
   document.getElementById('h-steps').innerHTML=[
@@ -747,7 +742,7 @@ function renderPlan(a,me,tm){
 /* ── YEAR BY YEAR ── */
 function renderYears(a,tm,startYear){
 
-  const maxYrs=Math.min(5,S.yrs);
+  const maxYrs=Math.min(15,Math.max(3,Math.ceil(S.tm/12)+1));
   // Build single year card with pill selector
   const pills=[];
   const bodies=[];
@@ -786,7 +781,7 @@ function renderYears(a,tm,startYear){
   const actualRise=meNow>0?((meEnd2/meNow-1)*100).toFixed(1):'0';
   document.getElementById('b-notes-list').innerHTML=[
     {t:'Why one fund in savings / FD?',b:'One place, zero market risk, instant access — no redemption wait, no NAV to watch. Slightly lower returns are the price of certainty, and that\'s exactly what an emergency fund is for. Simplicity also means you\'ll actually maintain it.'},
-    {t:'Inflation erodes the fund silently',b:'Your monthly spend of '+R(meNow)+' today will grow by '+actualRise+'% to '+R(meEnd2)+' by year '+S.yrs+' — because each expense rises at its own inflation rate. A fund built on today\'s numbers will be short exactly when you need it.'},
+    {t:'Inflation erodes the fund silently',b:'Your monthly spend of '+R(meNow)+' today will grow by '+actualRise+'% to '+R(meEnd2)+' over your '+fmtCoverage(S.tm)+' coverage period — because each expense rises at its own inflation rate. A fund built on today\'s numbers will be short exactly when you need it.'},
     {t:'If using FDs, ladder them',b:'Split the corpus across 2–3 deposits instead of one big FD. Breaking one in an emergency leaves the others earning. Remember savings and FD interest is taxed at your slab rate — factor that into the expected return.'}
   ].map(n=>`<div class="plan-item"><div class="plan-title">${n.t}</div><div class="plan-body">${n.b}</div></div>`).join('');
 }
@@ -794,7 +789,6 @@ function renderYears(a,tm,startYear){
 /* ── SETTINGS PAGE ── */
 function renderSettingsPage(){
   document.getElementById('disp-infl').textContent=S.infl+'%';
-  document.getElementById('disp-yrs').textContent=S.yrs+' yr';
   document.getElementById('s-badge-mo').textContent=S.tm+' mo';
 
   document.getElementById('s-bucket-rows').innerHTML=`
@@ -832,19 +826,20 @@ function openSheet(type,idx){
     B.innerHTML=`<div class="fg"><label class="fl">Default rate for new expenses (%)</label><input class="fi" type="number" id="sf-v" value="${S.infl}" min="1" max="20" step="0.5" inputmode="decimal"></div>
     <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">This is only a starting value when you add a new expense. Each existing expense uses its own individual rate — changing this does not affect them.</p>
     <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('inflation')">Save</button></div>`;
-  } else if(type==='years'){
-    T.textContent='Coverage Years';
-    B.innerHTML=`<div class="fg"><label class="fl">Years (1–10)</label><input class="fi" type="number" id="sf-v" value="${S.yrs}" min="1" max="10" inputmode="numeric"></div>
-    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">5 years is the recommended minimum for a solid emergency fund.</p>
-    <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('years')">Save</button></div>`;
   } else if(type==='fund'){
     T.textContent='Emergency Fund — '+S.fn;
+    const chipStyle=(on)=>'background:'+(on?'rgba(59,130,246,.12)':'var(--surface2)')+';color:'+(on?'var(--blue)':'var(--text2)')+';border:1px solid '+(on?'var(--blue)':'var(--border)')+';border-radius:8px;padding:7px 12px;font-size:.74rem;font-weight:600;cursor:pointer;font-family:inherit';
+    const chips=[6,9,12,15,18,24].map(m=>`<button type="button" style="${chipStyle(S.tm===m)}" onclick="setFundMonths(${m},this)">${m} mo</button>`).join('');
     B.innerHTML=`<div class="fg"><label class="fl">Account or deposit name</label><input class="fi" type="text" id="sf-bname" value="${S.fn}" placeholder="e.g. HDFC Savings / SBI FD"></div>
-    <div class="form-row2">
-      <div class="fg"><label class="fl">Months to cover</label><input class="fi" type="number" id="sf-bmo" value="${S.tm}" min="1" max="72" inputmode="numeric"></div>
-      <div class="fg"><label class="fl">Expected return (%/yr)</label><input class="fi" type="number" id="sf-brate" value="${S.fr}" min="0" max="30" step="0.5" inputmode="decimal"></div>
+    <div class="fg"><label class="fl">Months of expenses to cover</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px" id="sf-bmo-chips">${chips}</div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <input class="fi" type="number" id="sf-bmo" value="${S.tm}" min="1" max="72" inputmode="numeric" style="width:80px;text-align:center" oninput="syncFundMonths(this)">
+        <span style="font-size:.76rem;color:var(--blue);font-weight:600" id="sf-bmo-conv">= ${fmtCoverage(S.tm)}</span>
+      </div>
     </div>
-    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">Bank savings or FD — your choice. Instant withdrawal, no market risk. 12 months of expenses is a solid target.</p>
+    <div class="fg"><label class="fl">Expected return (%/yr)</label><input class="fi" type="number" id="sf-brate" value="${S.fr}" min="0" max="30" step="0.5" inputmode="decimal"></div>
+    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">Bank savings or FD — your choice. Instant withdrawal, no market risk. 12–18 months of expenses is a solid target.</p>
     <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('fund')">Save</button></div>`;
   } else if(type==='expense'){
     const isNew=idx===-1;
@@ -868,6 +863,24 @@ function openSheet(type,idx){
   document.getElementById('sheet').classList.add('open');
 }
 
+function setFundMonths(m,btn){
+  const inp=document.getElementById('sf-bmo');
+  if(inp)inp.value=m;
+  syncFundMonths(inp,btn);
+}
+function syncFundMonths(inp,btn){
+  const m=parseInt(inp&&inp.value)||0;
+  const conv=document.getElementById('sf-bmo-conv');
+  if(conv)conv.textContent=m>0?'= '+fmtCoverage(m):'';
+  const wrap=document.getElementById('sf-bmo-chips');
+  if(wrap)[...wrap.children].forEach(c=>{
+    const on=parseInt(c.textContent)===m;
+    c.style.background=on?'rgba(59,130,246,.12)':'var(--surface2)';
+    c.style.color=on?'var(--blue)':'var(--text2)';
+    c.style.border='1px solid '+(on?'var(--blue)':'var(--border)');
+  });
+}
+
 function closeSheet(){
   document.getElementById('sheet-overlay').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
@@ -879,7 +892,6 @@ function save(type,idx){
     S.saved.amt=Math.max(0,parseFloat(document.getElementById('sf-amt').value)||0);
     renderAll(); closeSheet(); toast('Balance updated');
   } else if(type==='inflation'){const v=parseFloat(document.getElementById('sf-v').value);if(v>=1&&v<=20){S.infl=v;renderAll();closeSheet();toast('Saved');}}
-  else if(type==='years'){const v=parseInt(document.getElementById('sf-v').value);if(v>=1&&v<=10){S.yrs=v;renderAll();closeSheet();toast('Saved');}}
   else if(type==='fund'){
     const n=document.getElementById('sf-bname').value.trim();
     const m=parseInt(document.getElementById('sf-bmo').value);
