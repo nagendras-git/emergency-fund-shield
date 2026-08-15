@@ -256,7 +256,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
         <div class="hdr-name">Shield</div>
       </div>
     </div>
-    <span id="hdr-strategy" style="font-size:.68rem;font-weight:600;color:var(--text3);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:99px">12-month single fund</span>
+    <span id="hdr-strategy" style="font-size:.68rem;font-weight:600;color:var(--text3);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:99px">12-month expenses</span>
   </div>
 </div>
 
@@ -313,8 +313,8 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
   <div class="sec-hdr" onclick="toggleSec('sec-h-progress')" style="margin-top:4px">
     <div class="sec-hdr-left">
       <div class="sec-hdr-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <span class="sec-hdr-title">Progress</span>
-      <span class="sec-badge green" id="prog-badge">0%</span>
+      <span class="sec-hdr-title">Emergency Fund</span>
+      <span class="sec-badge" id="prog-badge">0%</span>
     </div>
     <div class="sec-hdr-right">
       <span class="sec-caret" id="caret-sec-h-progress"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -551,7 +551,7 @@ function renderHome(a,me,tm){
   document.getElementById('h-mini-needed').textContent=L(stillNeeded);
 
   const chip=document.getElementById('hdr-strategy');
-  if(chip)chip.textContent=tm+'-month single fund';
+  if(chip)chip.textContent=tm+'-month expenses';
 
 }
 
@@ -568,53 +568,38 @@ function renderProgress(a){
   const saved=S.saved.amt||0;
   const target=a.tot;
   const pct=target>0?Math.min(100,(saved/target*100)):0;
+  const pctR=Math.round(pct);
   const remaining=Math.max(0,target-saved);
-  const detailId='bdet-0';
   const color='#3B82F6';
 
   const badgeEl=document.getElementById('prog-badge');
   if(badgeEl){
-    badgeEl.textContent=pct.toFixed(1)+'%';
-    badgeEl.style.color=pct>=100?'var(--green)':pct>0?'var(--blue)':'var(--text3)';
+    badgeEl.textContent=pctR+'%';
   }
 
   let html=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px">
     <div style="padding:11px 14px">
-      <!-- compact row: icon + name + bar + pct -->
-      <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="toggleBucketDetail('${detailId}',this)">
-        <div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2)">${B_SVG_ICONS[0]}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:.88rem;font-weight:600;color:var(--text1);margin-bottom:5px">${S.fn}</div>
-          <div style="height:4px;background:var(--surface3);border-radius:99px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${color};border-radius:99px;transition:width .35s cubic-bezier(.16,1,.3,1)"></div>
-          </div>
+      <div style="height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-bottom:12px">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:99px;transition:width .35s cubic-bezier(.16,1,.3,1)"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
+          <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">Saved</div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--green)">${L(saved)}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <span style="font-size:.82rem;font-weight:800;color:${color}">${pct.toFixed(1)}%</span>
-          <svg id="caret-${detailId}" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
+          <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">Target</div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--text1)">${L(target)}</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
+          <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">${remaining>0?'Left':'Status'}</div>
+          <div style="font-size:.78rem;font-weight:700;color:${remaining>0?'var(--red)':'var(--green)'}">${remaining>0?L(remaining):'Done ✓'}</div>
         </div>
       </div>
-      <!-- expandable detail -->
-      <div id="${detailId}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2)">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
-            <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">Saved</div>
-            <div style="font-size:.78rem;font-weight:700;color:var(--green)">${L(saved)}</div>
-          </div>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
-            <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">Target</div>
-            <div style="font-size:.78rem;font-weight:700;color:var(--text1)">${L(target)}</div>
-          </div>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
-            <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">${remaining>0?'Left':'Status'}</div>
-            <div style="font-size:.78rem;font-weight:700;color:${remaining>0?'var(--red)':'var(--green)'}">${remaining>0?L(remaining):'Done ✓'}</div>
-          </div>
-        </div>
-        <button onclick="openSheet('saved')" style="display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:5px 12px;border-radius:99px;cursor:pointer;font-family:inherit">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Update balance
-        </button>
-      </div>
+      <button onclick="openSheet('saved')" style="display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:5px 12px;border-radius:99px;cursor:pointer;font-family:inherit">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Update balance
+      </button>
     </div>
   </div>`;
   document.getElementById('h-progress').innerHTML=html;
