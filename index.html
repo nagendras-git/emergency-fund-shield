@@ -683,7 +683,10 @@ function openSheet(type,idx){
     T.textContent='Emergency Fund — '+S.fn;
     const chipStyle=(on)=>'background:'+(on?'rgba(59,130,246,.12)':'var(--surface2)')+';color:'+(on?'var(--blue)':'var(--text2)')+';border:1px solid '+(on?'var(--blue)':'var(--border)')+';border-radius:8px;padding:7px 12px;font-size:.74rem;font-weight:600;cursor:pointer;font-family:inherit';
     const chips=[6,9,12,15,18,24].map(m=>`<button type="button" style="${chipStyle(S.tm===m)}" onclick="setFundMonths(${m},this)">${m} mo</button>`).join('');
-    B.innerHTML=`<div class="fg"><label class="fl">Account or deposit name</label><input class="fi" type="text" id="sf-bname" value="${S.fn}" placeholder="e.g. HDFC Savings / SBI FD"></div>
+    const acctOptions=['Savings Account','Fixed Deposit (FD)','Recurring Deposit (RD)','Liquid Fund'];
+    if(S.fn&&!acctOptions.includes(S.fn))acctOptions.push(S.fn);
+    const acctOpts=acctOptions.map(o=>`<option value="${o}" ${S.fn===o?'selected':''}>${o}</option>`).join('');
+    B.innerHTML=`<div class="fg"><label class="fl">Account or deposit type</label><select class="fi" id="sf-bname">${acctOpts}</select></div>
     <div class="fg"><label class="fl">Months of expenses to cover</label>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px" id="sf-bmo-chips">${chips}</div>
       <div style="display:flex;align-items:center;gap:9px">
@@ -691,8 +694,6 @@ function openSheet(type,idx){
         <span style="font-size:.76rem;color:var(--blue);font-weight:600" id="sf-bmo-conv">= ${fmtCoverage(S.tm)}</span>
       </div>
     </div>
-    <div class="fg"><label class="fl">Expected return (%/yr)</label><input class="fi" type="number" id="sf-brate" value="${S.fr}" min="0" max="30" step="0.5" inputmode="decimal"></div>
-    <p style="font-size:.72rem;color:var(--text3);line-height:1.5;margin-bottom:14px">Bank savings or FD — your choice. Instant withdrawal, no market risk. 12–18 months of expenses is a solid target.</p>
     <div class="form-actions"><button class="btn btn-ghost" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" onclick="save('fund')">Save</button></div>`;
   } else if(type==='expense'){
     const isNew=idx===-1;
@@ -746,9 +747,8 @@ function save(type,idx){
   } else if(type==='fund'){
     const n=document.getElementById('sf-bname').value.trim();
     const m=parseInt(document.getElementById('sf-bmo').value);
-    const r=parseFloat(document.getElementById('sf-brate').value);
     if(!n||m<1)return;
-    S.fn=n;S.tm=m;S.fr=r||0;
+    S.fn=n;S.tm=m;
     renderAll();closeSheet();toast('Fund updated');
   } else if(type==='expense'){
     const n=document.getElementById('sf-ename').value.trim();
