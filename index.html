@@ -568,7 +568,6 @@ function renderProgress(a){
   const saved=S.saved.amt||0;
   const target=a.tot;
   const pct=target>0?Math.min(100,(saved/target*100)):0;
-  const pctR=Math.round(pct);
   const remaining=Math.max(0,target-saved);
   const detailId='bdet-0';
   const color='#3B82F6';
@@ -591,7 +590,7 @@ function renderProgress(a){
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <span style="font-size:.82rem;font-weight:800;color:${color}">${pctR}%</span>
+          <span style="font-size:.82rem;font-weight:800;color:${color}">${pct.toFixed(1)}%</span>
           <svg id="caret-${detailId}" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
       </div>
