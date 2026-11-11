@@ -46,10 +46,10 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 .mini-stat-val.blue{color:var(--blue)}
 
 /* header — matches expense tracker design */
-.top-header{position:sticky;top:0;z-index:80;background:rgba(13,13,16,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);padding:calc(env(safe-area-inset-top,12px) + 8px) 16px 10px}
+.top-header{position:sticky;top:0;z-index:80;background:#0d0d10;border-bottom:1px solid var(--border2);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 12px}
 .hdr-inner{width:100%;max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
 .hdr-avatar{width:38px;height:38px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:800;color:#fff;flex-shrink:0}
-.hdr-greeting{font-size:.68rem;color:var(--text3);font-weight:400;line-height:1}
+.hdr-greeting{font-size:.75rem;font-weight:500;color:#a1a1aa;line-height:1.2;margin-bottom:2px}
 .hdr-name{font-size:1.12rem;font-weight:800;color:var(--text1);letter-spacing:-.35px;line-height:1.2}
 
 /* summary card — big number + 2×2 grid */
@@ -78,6 +78,19 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 .sec-caret{color:var(--text3);transition:transform .25s var(--ease);display:flex;align-items:center;flex-shrink:0}
 .sec-caret svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .sec-caret.open{transform:rotate(180deg)}
+/* header and body look like one card when open */
+.sec-hdr.open{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
+.sec-hdr.open + .sec-body{margin-bottom:8px;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r-xl) var(--r-xl)}
+/* Emergency Fund expanded content */
+.ef-wrap{padding:14px 16px 16px}
+.ef-bar{height:6px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-bottom:12px}
+.ef-fill{height:100%;background:var(--blue);border-radius:99px;transition:width .35s cubic-bezier(.16,1,.3,1)}
+.ef-text{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.8rem;color:var(--text2);margin-bottom:14px}
+.ef-text b{color:var(--text1);font-weight:700}
+.ef-left{color:var(--red);font-weight:700}
+.ef-left.done{color:var(--green)}
+.ef-action{width:100%;padding:12px;border:none;border-radius:var(--r);background:var(--blue);color:#fff;font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer}
+.ef-action:active{opacity:.85}
 
 /* tab bar */
 .tab-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(13,13,16,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);display:flex;align-items:flex-start;justify-content:center;padding-top:7px}
@@ -312,7 +325,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
   <!-- 4. Progress -->
   <div class="sec-hdr" onclick="toggleSec('sec-h-progress')" style="margin-top:4px">
     <div class="sec-hdr-left">
-      <div class="sec-hdr-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="sec-hdr-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
       <span class="sec-hdr-title">Emergency Fund</span>
       <span class="sec-badge" id="prog-badge">0%</span>
     </div>
@@ -524,6 +537,7 @@ function toggleSec(id){
   const closed=body.classList.contains('closed');
   body.classList.toggle('closed',!closed);
   caret?.classList.toggle('open',closed);
+  body.previousElementSibling?.classList.toggle('open',closed);
 }
 
 /* ── RENDER ALL ── */
@@ -577,30 +591,14 @@ function renderProgress(a){
     badgeEl.textContent=pctR+'%';
   }
 
-  let html=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:8px">
-    <div style="padding:11px 14px">
-      <div style="height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-bottom:12px">
-        <div style="height:100%;width:${pct}%;background:${color};border-radius:99px;transition:width .35s cubic-bezier(.16,1,.3,1)"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
-          <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">Saved</div>
-          <div style="font-size:.78rem;font-weight:700;color:var(--green)">${L(saved)}</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
-          <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">Target</div>
-          <div style="font-size:.78rem;font-weight:700;color:var(--text1)">${L(target)}</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px">
-          <div style="font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;margin-bottom:2px">${remaining>0?'Left':'Status'}</div>
-          <div style="font-size:.78rem;font-weight:700;color:${remaining>0?'var(--red)':'var(--green)'}">${remaining>0?L(remaining):'Done ✓'}</div>
-        </div>
-      </div>
-      <button onclick="openSheet('saved')" style="display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:5px 12px;border-radius:99px;cursor:pointer;font-family:inherit">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Update balance
-      </button>
+  const doneCls=remaining>0?'':' done';
+  const html=`<div class="ef-wrap">
+    <div class="ef-bar"><div class="ef-fill" style="width:${pct}%"></div></div>
+    <div class="ef-text">
+      <span><b>${L(saved)}</b> saved of ${L(target)}</span>
+      <span class="ef-left${doneCls}">${remaining>0?L(remaining)+' to go':'Goal reached ✓'}</span>
     </div>
+    <button class="ef-action" onclick="openSheet('saved')">+ Add savings</button>
   </div>`;
   document.getElementById('h-progress').innerHTML=html;
 }
